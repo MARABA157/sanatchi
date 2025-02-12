@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1920" height="1080" viewBox="0 0 1920 1080" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Gece Gökyüzü Gradyanı -->
+  <rect width="1920" height="1080" fill="url(#nightSky)"/>
+  
+  <!-- Ay -->
+  <circle cx="1600" cy="200" r="80" fill="url(#moonGlow)"/>
+  <circle cx="1600" cy="200" r="70" fill="url(#moon)"/>
+  
+  <!-- Yıldızlar için Filtreler -->
+  <defs>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="2" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+    
+    <!-- Gece Gökyüzü Gradyanı -->
+    <linearGradient id="nightSky" x1="0" y1="0" x2="0" y2="1080" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#0F172A"/>
+      <stop offset="50%" stop-color="#1E293B"/>
+      <stop offset="100%" stop-color="#334155"/>
+    </linearGradient>
+    
+    <!-- Ay Gradyanları -->
+    <radialGradient id="moonGlow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0%" stop-color="#FBBF24" stop-opacity="0.2"/>
+      <stop offset="100%" stop-color="#FBBF24" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="moon" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0%" stop-color="#FEF3C7"/>
+      <stop offset="100%" stop-color="#FDE68A"/>
+    </radialGradient>
+  </defs>
+  
+  <!-- Yıldızlar -->
+  <g filter="url(#glow)">
+    <circle cx="200" cy="150" r="2" fill="white" opacity="0.8">
+      <animate attributeName="opacity" values="0.8;0.2;0.8" dur="3s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="400" cy="300" r="1.5" fill="white" opacity="0.6">
+      <animate attributeName="opacity" values="0.6;0.1;0.6" dur="4s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="800" cy="200" r="2" fill="white" opacity="0.7">
+      <animate attributeName="opacity" values="0.7;0.3;0.7" dur="5s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="1200" cy="400" r="1.5" fill="white" opacity="0.5">
+      <animate attributeName="opacity" values="0.5;0.1;0.5" dur="6s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="1500" cy="300" r="2" fill="white" opacity="0.8">
+      <animate attributeName="opacity" values="0.8;0.2;0.8" dur="4s" repeatCount="indefinite"/>
+    </circle>
+    <!-- Daha fazla yıldız -->
+    <circle cx="300" cy="500" r="1" fill="white" opacity="0.6">
+      <animate attributeName="opacity" values="0.6;0.1;0.6" dur="5s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="600" cy="600" r="1.5" fill="white" opacity="0.7">
+      <animate attributeName="opacity" values="0.7;0.2;0.7" dur="3s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="900" cy="700" r="1" fill="white" opacity="0.5">
+      <animate attributeName="opacity" values="0.5;0.1;0.5" dur="4s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="1300" cy="800" r="2" fill="white" opacity="0.8">
+      <animate attributeName="opacity" values="0.8;0.3;0.8" dur="6s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="1600" cy="600" r="1.5" fill="white" opacity="0.6">
+      <animate attributeName="opacity" values="0.6;0.2;0.6" dur="5s" repeatCount="indefinite"/>
+    </circle>
+  </g>
+</svg>
