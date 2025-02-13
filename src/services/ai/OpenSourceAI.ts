@@ -14,7 +14,7 @@ export class OpenSourceAI {
 
   private readonly API_ENDPOINTS = {
     STABLE_DIFFUSION: `${this.HF_API}/runwayml/stable-diffusion-v1-5`,
-    CHAT_COMPLETION: `${this.baseUrl}/generate`,
+    CHAT_COMPLETION: `${this.HF_API}/microsoft/DialoGPT-medium`,
     VIDEO_GENERATION: `${this.CLOUDINARY_URL}/${this.CLOUDINARY_CLOUD_NAME}/video/generate`,
     AUDIO_GENERATION: `${this.CLOUDINARY_URL}/${this.CLOUDINARY_CLOUD_NAME}/audio/generate`
   };
@@ -96,31 +96,30 @@ export class OpenSourceAI {
       const response = await fetch(this.API_ENDPOINTS.CHAT_COMPLETION, {
         method: 'POST',
         headers: {
+          'Authorization': `Bearer ${this.HF_TOKEN}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          model: 'llama2',
-          prompt: promptStr,
-          stream: false,
-          options: {
-            temperature: 0.7,
-            top_p: 0.9
+          inputs: promptStr,
+          parameters: {
+            max_new_tokens: 512,
+            return_full_text: false
           }
         }),
       });
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => null);
-        throw new Error(`Ollama API hatasi: ${response.status} - ${errorData?.error || response.statusText}`);
+        throw new Error(`HuggingFace API hatasi: ${response.status} - ${errorData?.error || response.statusText}`);
       }
 
       const data = await response.json();
       
-      if (!data.response) {
-        throw new Error("Ollama yanit vermedi");
+      if (!data.generated_text) {
+        throw new Error("HuggingFace yanit vermedi");
       }
 
-      return data.response;
+      return data.generated_text;
     } catch (error) {
       console.error('OpenSourceAI chat error:', error);
       throw error;
@@ -133,7 +132,7 @@ export class OpenSourceAI {
       const response = await this.chat(prompt);
       return {
         text: response,
-        model: 'llama2'
+        model: 'DialoGPT-medium'
       };
     } catch (error) {
       console.error('OpenSourceAI chat completion error:', error);
