@@ -13,11 +13,14 @@ export class OpenSourceAI {
   private readonly CLOUDINARY_API_SECRET = import.meta.env.VITE_CLOUDINARY_API_SECRET || '';
 
   private readonly API_ENDPOINTS = {
-    STABLE_DIFFUSION: `${this.HF_API}/runwayml/stable-diffusion-v1-5`,
-    CHAT_COMPLETION: 'http://localhost:11434/api/generate',
+    STABLE_DIFFUSION: `${this.HF_API}/stabilityai/stable-diffusion-xl-base-1.0`,
+    CHAT_COMPLETION_HF: `${this.HF_API}/microsoft/phi-2`,
+    CHAT_COMPLETION_OLLAMA: 'http://localhost:11434/api/generate',
     VIDEO_GENERATION: `${this.CLOUDINARY_URL}/${this.CLOUDINARY_CLOUD_NAME}/video/generate`,
     AUDIO_GENERATION: `${this.CLOUDINARY_URL}/${this.CLOUDINARY_CLOUD_NAME}/audio/generate`
   };
+
+  private readonly IS_DEVELOPMENT = process.env.NODE_ENV === 'development';
 
   private readonly isTestMode = false;
 
@@ -43,8 +46,10 @@ export class OpenSourceAI {
       }
 
       console.log('Generating image with prompt:', prompt);
-      console.log('Using HF token:', this.HF_TOKEN);
 
+      // Prompt'u zenginleştir
+      const enhancedPrompt = `masterpiece, best quality, highly detailed, ${prompt}`;
+      
       const response = await fetch(this.API_ENDPOINTS.STABLE_DIFFUSION, {
         method: 'POST',
         headers: {
@@ -52,13 +57,19 @@ export class OpenSourceAI {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          inputs: prompt,
+          inputs: enhancedPrompt,
           parameters: {
-            negative_prompt: "blurry, bad quality, worst quality",
-            num_inference_steps: 30,
-            guidance_scale: 7.5,
-            width: 512,
-            height: 512
+            negative_prompt: "blurry, bad quality, worst quality, low quality, normal quality, jpeg artifacts, signature, watermark, username, artist name, (worst quality:2), (low quality:2), (normal quality:2), lowres, bad anatomy, bad hands, error, missing fingers, extra digit, fewer digits, cropped, text, jpeg artifacts, signature, watermark, username, artist name",
+            num_inference_steps: 50, // Daha fazla adım = daha iyi kalite
+            guidance_scale: 8.5,  // Prompt'a daha fazla bağlılık
+            width: 1024,  // Daha yüksek çözünürlük
+            height: 1024, // Daha yüksek çözünürlük
+            sampler: "DPM++ 2M Karras", // Daha iyi sampler
+            seed: Math.floor(Math.random() * 2147483647), // Rastgele seed
+            scheduler: "K_EULER_ANCESTRAL", // Daha iyi scheduler
+            num_images_per_prompt: 1,
+            clip_skip: 2, // Daha iyi stil kontrolü
+            denoising_strength: 0.7 // Daha detaylı görüntü
           }
         }),
       });
@@ -85,34 +96,73 @@ export class OpenSourceAI {
   // Chat fonksiyonu
   public async chat(promptStr: string): Promise<string> {
     try {
-      const response = await fetch(this.API_ENDPOINTS.CHAT_COMPLETION, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: "llama2",
-          prompt: promptStr,
-          stream: false,
-          options: {
-            temperature: 0.7,
-            top_p: 0.9,
-            max_tokens: 500
-          }
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`Ollama API hatasi: ${response.status}`);
+      // Geliştirme ortamında Ollama, canlıda HuggingFace
+      if (this.IS_DEVELOPMENT) {
+        return this.chatWithOllama(promptStr);
+      } else {
+        return this.chatWithHuggingFace(promptStr);
       }
-
-      const data = await response.json();
-      return data.response || "Üzgünüm, yanıt üretemiyorum.";
-
     } catch (error) {
       console.error('Chat error:', error);
       throw error;
     }
+  }
+
+  private async chatWithOllama(promptStr: string): Promise<string> {
+    const response = await fetch(this.API_ENDPOINTS.CHAT_COMPLETION_OLLAMA, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: "llama2",
+        prompt: promptStr,
+        stream: false,
+        options: {
+          temperature: 0.7,
+          top_p: 0.9,
+          max_tokens: 500
+        }
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Ollama API hatasi: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data.response || "Üzgünüm, yanıt üretemiyorum.";
+  }
+
+  private async chatWithHuggingFace(promptStr: string): Promise<string> {
+    if (!this.HF_TOKEN) {
+      throw new Error('HuggingFace API token is not configured');
+    }
+
+    const response = await fetch(this.API_ENDPOINTS.CHAT_COMPLETION_HF, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${this.HF_TOKEN}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        inputs: promptStr,
+        parameters: {
+          max_new_tokens: 256,
+          temperature: 0.7,
+          top_p: 0.9,
+          do_sample: true,
+          return_full_text: false
+        }
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HuggingFace API hatasi: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data[0]?.generated_text || "Üzgünüm, yanıt üretemiyorum.";
   }
 
   // Chat Tamamlama
@@ -121,7 +171,7 @@ export class OpenSourceAI {
       const response = await this.chat(prompt);
       return {
         text: response,
-        model: 'Llama2'
+        model: this.IS_DEVELOPMENT ? 'Llama2' : 'Phi-2'
       };
     } catch (error) {
       throw error;
