@@ -14,7 +14,7 @@ export class OpenSourceAI {
 
   private readonly API_ENDPOINTS = {
     STABLE_DIFFUSION: `${this.HF_API}/runwayml/stable-diffusion-v1-5`,
-    CHAT_COMPLETION: `${this.HF_API}/facebook/blenderbot-400M-distill`,
+    CHAT_COMPLETION: `${this.HF_API}/google/flan-t5-base`,
     VIDEO_GENERATION: `${this.CLOUDINARY_URL}/${this.CLOUDINARY_CLOUD_NAME}/video/generate`,
     AUDIO_GENERATION: `${this.CLOUDINARY_URL}/${this.CLOUDINARY_CLOUD_NAME}/audio/generate`
   };
@@ -117,7 +117,7 @@ export class OpenSourceAI {
       const response = await this.chat(prompt);
       return {
         text: response,
-        model: 'blenderbot'
+        model: 'google/flan-t5-base'
       };
     } catch (error) {
       throw error;
