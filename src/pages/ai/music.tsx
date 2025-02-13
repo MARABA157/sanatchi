@@ -1,284 +1,249 @@
-import { useState, useRef } from 'react';
+import { useState } from 'react';
+import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Slider } from '@/components/ui/slider';
-import { Label } from '@/components/ui/label';
-import { Layout } from '@/components/Layout';
-import { Loader2, Play, Pause, Download, Share2, Sparkles, Music2, Waveform } from 'lucide-react';
+import {
+  Music2,
+  Wand2,
+  Download,
+  Share2,
+  Save,
+  Loader2,
+  RefreshCcw,
+  Sparkles,
+  Volume2,
+  Clock,
+  Settings2
+} from 'lucide-react';
 
-const MusicPage = () => {
+export default function MusicGeneration() {
   const [prompt, setPrompt] = useState('');
-  const [duration, setDuration] = useState(10);
+  const [duration, setDuration] = useState(30);
   const [tempo, setTempo] = useState(120);
   const [generating, setGenerating] = useState(false);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
-  const [playing, setPlaying] = useState(false);
-  const audioRef = useRef<HTMLAudioElement>(null);
 
-  const generateMusic = async () => {
-    if (!prompt || generating) return;
-
+  const handleGenerate = async () => {
+    if (!prompt) return;
+    setGenerating(true);
+    
     try {
-      setGenerating(true);
-
-      // Ses oluştur
-      const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
-      const audioContext = new AudioContextClass();
-      const sampleRate = audioContext.sampleRate;
-      const frameCount = sampleRate * duration;
-      const buffer = audioContext.createBuffer(2, frameCount, sampleRate); // Stereo ses için 2 kanal
-      const leftChannel = buffer.getChannelData(0);
-      const rightChannel = buffer.getChannelData(1);
-
-      // Daha karmaşık bir ses dalgası oluştur
-      const beatsPerSecond = tempo / 60;
-      const samplesPerBeat = sampleRate / beatsPerSecond;
-
-      for (let i = 0; i < frameCount; i++) {
-        const t = i / sampleRate;
-        const beat = Math.floor(i / samplesPerBeat);
-        
-        // Ana frekans (440Hz = A4 notası)
-        const mainFreq = 440;
-        
-        // Harmonikler ekle
-        const harmonic1 = Math.sin(2 * Math.PI * mainFreq * t);
-        const harmonic2 = Math.sin(2 * Math.PI * mainFreq * 2 * t) * 0.5;
-        const harmonic3 = Math.sin(2 * Math.PI * mainFreq * 3 * t) * 0.25;
-        
-        // Vuruş efekti
-        const beatEffect = Math.exp(-5 * (i % samplesPerBeat) / samplesPerBeat);
-        
-        // Tüm sesleri birleştir
-        const sample = (harmonic1 + harmonic2 + harmonic3) * 0.3 * beatEffect;
-        
-        // Stereo efekti için kanalları hafifçe farklılaştır
-        leftChannel[i] = sample * (1 + Math.sin(2 * Math.PI * 0.5 * t) * 0.2);
-        rightChannel[i] = sample * (1 - Math.sin(2 * Math.PI * 0.5 * t) * 0.2);
-      }
-
-      // Buffer'ı WAV formatına dönüştür
-      const wavBuffer = audioBufferToWav(buffer);
-      const blob = new Blob([wavBuffer], { type: 'audio/wav' });
-      
-      // Önceki URL'i temizle
-      if (audioUrl) {
-        URL.revokeObjectURL(audioUrl);
-      }
-
-      const url = URL.createObjectURL(blob);
-      setAudioUrl(url);
-      setGenerating(false);
-
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      setAudioUrl('demo.mp3');
     } catch (error) {
-      console.error('Müzik oluşturma hatası:', error);
+      console.error('Music generation error:', error);
+    } finally {
       setGenerating(false);
-    }
-  };
-
-  const togglePlayback = () => {
-    if (audioRef.current) {
-      if (playing) {
-        audioRef.current.pause();
-      } else {
-        audioRef.current.play();
-      }
-      setPlaying(!playing);
     }
   };
 
   return (
-    <Layout>
-      <div className="container mx-auto p-4 space-y-8">
-        <div className="text-center space-y-4">
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 text-transparent bg-clip-text">
-            Yapay Zeka Müzik Stüdyosu
-          </h1>
-          <p className="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-            Hayal ettiğiniz müziği yapay zeka ile oluşturun. Tarzınızı, duygularınızı ve vizyonunuzu
-            kelimelere dökün, yapay zeka sizin için benzersiz bir müzik parçası üretsin.
-          </p>
-        </div>
-
-        <div className="grid gap-8 md:grid-cols-2">
-          <div className="space-y-6 bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg">
-            <div className="space-y-2">
-              <Label htmlFor="prompt">Müzik Açıklaması</Label>
-              <Textarea
-                id="prompt"
-                placeholder="Müziğinizi tanımlayın... Örnek: Sakin ve huzurlu bir piyano melodisi, yağmur sesi eşliğinde..."
-                value={prompt}
-                onChange={(e) => setPrompt(e.target.value)}
-                className="h-32 resize-none"
-              />
+    <div className="min-h-screen bg-[url('/images/music-bg.jpg')] bg-cover bg-center bg-fixed">
+      <div className="min-h-screen bg-black/70 backdrop-blur-sm py-12">
+        <div className="container mx-auto px-4">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="max-w-5xl mx-auto"
+          >
+            {/* Başlık */}
+            <div className="text-center mb-12">
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ type: "spring", stiffness: 260, damping: 20 }}
+                className="w-24 h-24 bg-gradient-to-r from-purple-600 via-pink-600 to-red-600 rounded-full mx-auto flex items-center justify-center mb-6 shadow-lg shadow-purple-500/30"
+              >
+                <Music2 className="w-12 h-12 text-white" />
+              </motion.div>
+              
+              <h1 className="text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-600 mb-4">
+                AI Müzik Stüdyosu
+              </h1>
+              <p className="text-xl text-gray-300 max-w-2xl mx-auto">
+                Yapay zeka teknolojisi ile hayalinizdeki müziği oluşturun
+              </p>
             </div>
 
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label>Süre (saniye)</Label>
-                <div className="flex items-center gap-4">
-                  <Slider
-                    value={[duration]}
-                    onValueChange={(value) => setDuration(value[0])}
-                    min={5}
-                    max={30}
-                    step={5}
-                    className="flex-1"
-                  />
-                  <span className="w-12 text-center">{duration}s</span>
-                </div>
-              </div>
+            {/* Ana Panel */}
+            <div className="grid md:grid-cols-2 gap-8">
+              {/* Sol Panel - Kontroller */}
+              <div className="space-y-8">
+                <motion.div
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.2 }}
+                  className="bg-white/10 backdrop-blur-md rounded-2xl p-6 shadow-xl border border-white/10"
+                >
+                  <h2 className="text-2xl font-semibold text-white mb-4 flex items-center">
+                    <Settings2 className="w-6 h-6 mr-2 text-purple-400" />
+                    Müzik Ayarları
+                  </h2>
+                  
+                  <div className="space-y-6">
+                    {/* Açıklama */}
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-gray-300">
+                        Müzik Açıklaması
+                      </label>
+                      <Textarea
+                        value={prompt}
+                        onChange={(e) => setPrompt(e.target.value)}
+                        placeholder="Örnek: Hızlı tempolu, elektronik bir dans müziği..."
+                        className="h-32 bg-black/30 border-white/20 text-white placeholder:text-gray-500 resize-none"
+                      />
+                    </div>
 
-              <div className="space-y-2">
-                <Label>Tempo (BPM)</Label>
-                <div className="flex items-center gap-4">
-                  <Slider
-                    value={[tempo]}
-                    onValueChange={(value) => setTempo(value[0])}
-                    min={60}
-                    max={180}
-                    step={10}
-                    className="flex-1"
-                  />
-                  <span className="w-12 text-center">{tempo}</span>
-                </div>
-              </div>
-            </div>
+                    {/* Süre */}
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-gray-300 flex items-center">
+                        <Clock className="w-4 h-4 mr-1 text-purple-400" />
+                        Süre: {duration} saniye
+                      </label>
+                      <Slider
+                        value={[duration]}
+                        onValueChange={(value) => setDuration(value[0])}
+                        max={60}
+                        min={10}
+                        step={5}
+                        className="mt-2"
+                      />
+                    </div>
 
-            <Button
-              onClick={generateMusic}
-              disabled={generating || !prompt}
-              className="w-full"
-              size="lg"
-            >
-              {generating ? (
-                <>
-                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                  Müzik Oluşturuluyor...
-                </>
-              ) : (
-                <>
-                  <Music2 className="mr-2 h-5 w-5" />
-                  Müzik Oluştur
-                </>
-              )}
-            </Button>
-          </div>
-
-          <div className="space-y-6 bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg">
-            {audioUrl ? (
-              <div className="space-y-6">
-                <div className="relative">
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <Button
-                      onClick={togglePlayback}
-                      variant="outline"
-                      size="lg"
-                      className="rounded-full w-16 h-16"
-                    >
-                      {playing ? (
-                        <Pause className="h-8 w-8" />
-                      ) : (
-                        <Play className="h-8 w-8 ml-1" />
-                      )}
-                    </Button>
+                    {/* Tempo */}
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-gray-300 flex items-center">
+                        <Volume2 className="w-4 h-4 mr-1 text-purple-400" />
+                        Tempo: {tempo} BPM
+                      </label>
+                      <Slider
+                        value={[tempo]}
+                        onValueChange={(value) => setTempo(value[0])}
+                        max={200}
+                        min={60}
+                        step={10}
+                        className="mt-2"
+                      />
+                    </div>
                   </div>
-                  <Waveform className="w-full h-32 text-gray-300 dark:text-gray-700" />
-                </div>
+                </motion.div>
 
-                <audio
-                  ref={audioRef}
-                  src={audioUrl}
-                  className="hidden"
-                  onEnded={() => setPlaying(false)}
-                />
-
-                <div className="flex gap-4">
-                  <a 
-                    href={audioUrl}
-                    download="ai-music.wav"
-                    className="flex-1"
-                  >
-                    <Button variant="outline" className="w-full">
-                      <Download className="mr-2 h-5 w-5" />
-                      İndir
-                    </Button>
-                  </a>
-                  <Button 
-                    variant="outline"
-                    className="flex-1"
-                    onClick={() => {
-                      navigator.clipboard.writeText(window.location.href);
-                      alert('Müzik bağlantısı kopyalandı!');
-                    }}
-                  >
-                    <Share2 className="mr-2 h-5 w-5" />
-                    Paylaş
-                  </Button>
-                </div>
+                {/* Oluştur Butonu */}
+                <Button
+                  size="lg"
+                  onClick={handleGenerate}
+                  disabled={!prompt || generating}
+                  className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-lg h-14 shadow-lg shadow-purple-500/30"
+                >
+                  {generating ? (
+                    <>
+                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                      Müzik Oluşturuluyor...
+                    </>
+                  ) : (
+                    <>
+                      <Wand2 className="mr-2 h-5 w-5" />
+                      Müzik Oluştur
+                    </>
+                  )}
+                </Button>
               </div>
-            ) : (
-              <div className="h-full flex flex-col items-center justify-center text-gray-500 dark:text-gray-400">
-                <Music2 className="h-16 w-16 mb-4" />
-                <p className="text-center">
-                  Henüz bir müzik oluşturmadınız. Müzik oluşturmak için sol taraftaki formu doldurun
-                  ve "Müzik Oluştur" butonuna tıklayın.
+
+              {/* Sağ Panel - Önizleme */}
+              <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.4 }}
+                className="bg-white/10 backdrop-blur-md rounded-2xl p-6 shadow-xl border border-white/10 flex flex-col"
+              >
+                <h2 className="text-2xl font-semibold text-white mb-6 flex items-center">
+                  <Music2 className="w-6 h-6 mr-2 text-purple-400" />
+                  Müzik Önizleme
+                </h2>
+
+                {audioUrl ? (
+                  <div className="space-y-6 flex-1">
+                    <div className="bg-black/30 rounded-lg p-4">
+                      <audio controls className="w-full">
+                        <source src={audioUrl} type="audio/mpeg" />
+                        Tarayıcınız audio elementini desteklemiyor.
+                      </audio>
+                    </div>
+
+                    <div className="flex justify-center gap-4">
+                      <Button variant="outline" size="lg" className="bg-white/5 hover:bg-white/10 border-white/10 text-white flex-1">
+                        <Download className="mr-2 h-5 w-5" />
+                        İndir
+                      </Button>
+                      <Button variant="outline" size="lg" className="bg-white/5 hover:bg-white/10 border-white/10 text-white flex-1">
+                        <Share2 className="mr-2 h-5 w-5" />
+                        Paylaş
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex-1 flex flex-col items-center justify-center text-gray-400">
+                    <Music2 className="w-16 h-16 mb-4 opacity-50" />
+                    <p className="text-center">
+                      Müzik oluşturmak için sol taraftaki ayarları yapın ve
+                      "Müzik Oluştur" butonuna tıklayın.
+                    </p>
+                  </div>
+                )}
+              </motion.div>
+            </div>
+
+            {/* İpuçları */}
+            <div className="grid md:grid-cols-3 gap-6 mt-12">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.6 }}
+                className="bg-white/5 backdrop-blur-sm p-6 rounded-xl border border-white/10"
+              >
+                <Sparkles className="w-8 h-8 text-purple-400 mb-4" />
+                <h3 className="text-lg font-semibold text-white mb-2">
+                  Detaylı Açıklama
+                </h3>
+                <p className="text-gray-400">
+                  Müzik tarzı, enstrümanlar ve duygu durumunu belirtin
                 </p>
-              </div>
-            )}
-          </div>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.7 }}
+                className="bg-white/5 backdrop-blur-sm p-6 rounded-xl border border-white/10"
+              >
+                <RefreshCcw className="w-8 h-8 text-purple-400 mb-4" />
+                <h3 className="text-lg font-semibold text-white mb-2">
+                  Parametreleri Ayarla
+                </h3>
+                <p className="text-gray-400">
+                  Süre ve tempo ayarlarıyla müziği özelleştirin
+                </p>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.8 }}
+                className="bg-white/5 backdrop-blur-sm p-6 rounded-xl border border-white/10"
+              >
+                <Music2 className="w-8 h-8 text-purple-400 mb-4" />
+                <h3 className="text-lg font-semibold text-white mb-2">
+                  Müzik Türü
+                </h3>
+                <p className="text-gray-400">
+                  Pop, rock, klasik gibi türleri belirtebilirsiniz
+                </p>
+              </motion.div>
+            </div>
+          </motion.div>
         </div>
       </div>
-    </Layout>
+    </div>
   );
-};
-
-export default MusicPage;
-
-// AudioBuffer'ı WAV formatına dönüştürme fonksiyonu
-function audioBufferToWav(buffer: AudioBuffer): ArrayBuffer {
-  const numChannels = buffer.numberOfChannels;
-  const length = buffer.length;
-  const sampleRate = buffer.sampleRate;
-  const bitsPerSample = 16;
-  const bytesPerSample = bitsPerSample / 8;
-  const blockAlign = numChannels * bytesPerSample;
-  const byteRate = sampleRate * blockAlign;
-  const dataSize = length * blockAlign;
-
-  const buffer_ = new ArrayBuffer(44 + dataSize);
-  const view = new DataView(buffer_);
-
-  // WAV header
-  writeString(view, 0, 'RIFF');
-  view.setUint32(4, 36 + dataSize, true);
-  writeString(view, 8, 'WAVE');
-  writeString(view, 12, 'fmt ');
-  view.setUint32(16, 16, true);
-  view.setUint16(20, 1, true);
-  view.setUint16(22, numChannels, true);
-  view.setUint32(24, sampleRate, true);
-  view.setUint32(28, byteRate, true);
-  view.setUint16(32, blockAlign, true);
-  view.setUint16(34, bitsPerSample, true);
-  writeString(view, 36, 'data');
-  view.setUint32(40, dataSize, true);
-
-  // Write audio data
-  const offset = 44;
-  for (let i = 0; i < length; i++) {
-    for (let channel = 0; channel < numChannels; channel++) {
-      const sample = Math.max(-1, Math.min(1, buffer.getChannelData(channel)[i]));
-      const int = sample < 0 ? sample * 0x8000 : sample * 0x7FFF;
-      view.setInt16(offset + (i * blockAlign) + (channel * bytesPerSample), int, true);
-    }
-  }
-
-  return buffer_;
-}
-
-function writeString(view: DataView, offset: number, string: string) {
-  for (let i = 0; i < string.length; i++) {
-    view.setUint8(offset + i, string.charCodeAt(i));
-  }
 }

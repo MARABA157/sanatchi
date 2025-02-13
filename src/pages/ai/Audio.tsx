@@ -19,7 +19,8 @@ import {
 
 export default function Audio() {
   const [prompt, setPrompt] = useState('');
-  const [duration, setDuration] = useState(30);
+  const [duration, setDuration] = useState<number>(30);
+  const [speed, setSpeed] = useState<number>(1.0);
   const [tempo, setTempo] = useState(120);
   const [generating, setGenerating] = useState(false);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
@@ -33,6 +34,22 @@ export default function Audio() {
       setAudioUrl('demo.mp3');
     } catch (error) {
       console.error('Music generation error:', error);
+    } finally {
+      setGenerating(false);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!prompt || generating) return;
+
+    setGenerating(true);
+    try {
+      const ai = OpenSourceAI.getInstance();
+      const result = await ai.generateAudio(prompt, duration, speed);
+      setAudioUrl(result.url);
+    } catch (err) {
+      console.error('Error generating audio:', err);
     } finally {
       setGenerating(false);
     }
@@ -95,20 +112,35 @@ export default function Audio() {
                       />
                     </div>
 
-                    {/* Süre */}
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium text-gray-300 flex items-center">
-                        <Clock className="w-4 h-4 mr-1 text-purple-400" />
-                        Süre: {duration} saniye
-                      </label>
-                      <Slider
-                        value={[duration]}
-                        onValueChange={(value) => setDuration(value[0])}
-                        max={60}
-                        min={10}
-                        step={5}
-                        className="mt-2"
-                      />
+                    {/* Süre ve Hız Kontrolleri */}
+                    <div className="grid grid-cols-2 gap-4 mb-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-200 mb-1">
+                          Süre (saniye)
+                        </label>
+                        <input
+                          type="number"
+                          min="1"
+                          max="300"
+                          value={duration}
+                          onChange={(e) => setDuration(Number(e.target.value))}
+                          className="w-full px-3 py-2 bg-black/20 border border-white/10 rounded-lg text-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-200 mb-1">
+                          Konuşma Hızı
+                        </label>
+                        <select
+                          value={speed}
+                          onChange={(e) => setSpeed(Number(e.target.value))}
+                          className="w-full px-3 py-2 bg-black/20 border border-white/10 rounded-lg text-white"
+                        >
+                          <option value="0.5">Yavaş</option>
+                          <option value="1.0">Normal</option>
+                          <option value="1.5">Hızlı</option>
+                        </select>
+                      </div>
                     </div>
 
                     {/* Tempo */}
@@ -132,7 +164,7 @@ export default function Audio() {
                 {/* Oluştur Butonu */}
                 <Button
                   size="lg"
-                  onClick={handleGenerate}
+                  onClick={handleSubmit}
                   disabled={!prompt || generating}
                   className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-lg h-14 shadow-lg shadow-purple-500/30"
                 >

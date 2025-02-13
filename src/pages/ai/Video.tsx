@@ -23,7 +23,10 @@ export default function AiVideo() {
   const [result, setResult] = useState<string | null>(null);
   const [selectedStyle, setSelectedStyle] = useState(VIDEO_STYLES[0].id);
   const [error, setError] = useState<string | null>(null);
-  const [model, setModel] = useState<tf.LayersModel | null>(null);
+  const [model, setModel] = useState<'zeroscope' | 'modelscope' | 'animatediff' | 'cloudinary'>('zeroscope');
+  const [fps, setFps] = useState(24);
+  const [numFrames, setNumFrames] = useState(50);
+  const [loading, setLoading] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -206,28 +209,25 @@ export default function AiVideo() {
     });
   };
 
-  const handleGenerate = async () => {
-    if (!prompt || generating) return;
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!prompt || loading) return;
 
+    setLoading(true);
     try {
-      setGenerating(true);
+      const ai = OpenSourceAI.getInstance();
+      const result = await ai.generateVideo(prompt, {
+        model,
+        fps,
+        num_frames: numFrames
+      });
+      setResult(result.url);
       setError(null);
-
-      console.log("Video oluşturma başlatılıyor...");
-      const videoUrl = await generateVideo();
-      
-      if (videoUrl) {
-        console.log("Video başarıyla oluşturuldu");
-        setResult(videoUrl);
-      } else {
-        throw new Error("Video oluşturulamadı");
-      }
-
-    } catch (error: any) {
-      console.error('Video oluşturma hatası:', error);
-      setError(error.message || 'Video oluşturulurken bir hata oluştu');
+    } catch (err) {
+      console.error('Error generating video:', err);
+      setError('Video oluşturulurken bir hata oluştu.');
     } finally {
-      setGenerating(false);
+      setLoading(false);
     }
   };
 
@@ -269,8 +269,84 @@ export default function AiVideo() {
             </div>
           </div>
 
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-200 mb-1">
+                Model
+              </label>
+              <select
+                value={model}
+                onChange={(e) => setModel(e.target.value as any)}
+                className="w-full px-3 py-2 bg-black/20 border border-white/10 rounded-lg text-white"
+              >
+                <option value="zeroscope">ZeroScope (En İyi Kalite)</option>
+                <option value="modelscope">ModelScope (Hızlı)</option>
+                <option value="animatediff">AnimateDiff (Anime Stili)</option>
+                <option value="cloudinary">Cloudinary (Basit)</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-200 mb-1">
+                FPS (Kare/Saniye)
+              </label>
+              <select
+                value={fps}
+                onChange={(e) => setFps(Number(e.target.value))}
+                className="w-full px-3 py-2 bg-black/20 border border-white/10 rounded-lg text-white"
+              >
+                <option value="8">8 FPS (Yavaş)</option>
+                <option value="24">24 FPS (Normal)</option>
+                <option value="30">30 FPS (Akıcı)</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-200 mb-1">
+                Kare Sayısı
+              </label>
+              <select
+                value={numFrames}
+                onChange={(e) => setNumFrames(Number(e.target.value))}
+                className="w-full px-3 py-2 bg-black/20 border border-white/10 rounded-lg text-white"
+              >
+                <option value="16">16 Kare (Kısa)</option>
+                <option value="32">32 Kare (Orta)</option>
+                <option value="50">50 Kare (Uzun)</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="mb-4 p-4 bg-black/20 border border-white/10 rounded-lg">
+            <h3 className="text-lg font-semibold text-white mb-2">Model Bilgisi</h3>
+            {model === 'zeroscope' && (
+              <p className="text-gray-300">
+                ZeroScope, yüksek kaliteli ve gerçekçi videolar üreten gelişmiş bir modeldir. 
+                Daha uzun render süresi gerektirir ama en iyi sonucu verir.
+              </p>
+            )}
+            {model === 'modelscope' && (
+              <p className="text-gray-300">
+                ModelScope, hızlı video üretimi yapabilen bir modeldir. 
+                Kalite/hız dengesi için iyi bir seçenektir.
+              </p>
+            )}
+            {model === 'animatediff' && (
+              <p className="text-gray-300">
+                AnimateDiff, anime ve çizgi film tarzı videolar üretmek için özelleştirilmiş bir modeldir.
+                Artistik ve stilize sonuçlar için idealdir.
+              </p>
+            )}
+            {model === 'cloudinary' && (
+              <p className="text-gray-300">
+                Cloudinary, basit ve hızlı video üretimi yapan bir servistir.
+                Temel video ihtiyaçları için uygundur.
+              </p>
+            )}
+          </div>
+
           <Button
-            onClick={handleGenerate}
+            onClick={handleSubmit}
             disabled={generating || !prompt}
             className="w-full"
           >
