@@ -83,20 +83,13 @@ export class OpenSourceAI {
   }
 
   // Chat fonksiyonu
-  public async chat(prompt: string): Promise<string> {
+  public async chat(promptStr: string): Promise<string> {
     try {
-      // Önce Ollama'nın çalışıp çalışmadığını kontrol et
-      try {
-        const healthCheck = await fetch(`${this.baseUrl}/version`);
-        if (!healthCheck.ok) {
-          throw new Error("Ollama servisi calismiyor. Lutfen Ollama'yi baslatin.");
-        }
-      } catch (error) {
-        throw new Error("Ollama servisine baglanilamiyor. Lutfen Ollama'nin calistigindan emin olun.");
+      if (!this.HF_TOKEN) {
+        throw new Error('HuggingFace API token is not configured');
       }
 
-      // Prompt'u string olduğundan emin olalım
-      const promptStr = typeof prompt === 'string' ? prompt : JSON.stringify(prompt);
+      console.log('Sending chat request with prompt:', promptStr);
 
       const response = await fetch(this.API_ENDPOINTS.CHAT_COMPLETION, {
         method: 'POST',
@@ -105,26 +98,38 @@ export class OpenSourceAI {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          inputs: promptStr,
-          parameters: {
-            max_new_tokens: 512,
-            return_full_text: false
+          inputs: {
+            text: promptStr,
+            max_length: 1000,
+            temperature: 0.7,
+            top_p: 0.9,
+            top_k: 50,
+            num_return_sequences: 1
           }
         }),
       });
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => null);
+        console.error('HuggingFace API error response:', errorData);
         throw new Error(`HuggingFace API hatasi: ${response.status} - ${errorData?.error || response.statusText}`);
       }
 
       const data = await response.json();
-      
-      if (!data.generated_text) {
-        throw new Error("HuggingFace yanit vermedi");
+      console.log('HuggingFace API response:', data);
+
+      if (!data || !Array.isArray(data) || data.length === 0) {
+        throw new Error("HuggingFace geçersiz yanıt verdi");
       }
 
-      return data.generated_text;
+      // DialoGPT'nin yanıtını al
+      const generatedText = data[0]?.generated_text || data[0];
+      
+      // Prompt'u yanıttan çıkar
+      const cleanResponse = generatedText.replace(promptStr, '').trim();
+      
+      return cleanResponse || "Üzgünüm, yanıt üretemiyorum. Lütfen tekrar deneyin.";
+
     } catch (error) {
       console.error('OpenSourceAI chat error:', error);
       throw error;
