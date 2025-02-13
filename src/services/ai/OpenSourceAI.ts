@@ -91,7 +91,7 @@ export class OpenSourceAI {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          model: "mistral",
+          model: "llama2",
           prompt: promptStr,
           stream: false,
           options: {
@@ -121,7 +121,7 @@ export class OpenSourceAI {
       const response = await this.chat(prompt);
       return {
         text: response,
-        model: 'Mistral'
+        model: 'Llama2'
       };
     } catch (error) {
       throw error;
