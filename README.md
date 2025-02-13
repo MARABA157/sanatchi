@@ -40,3 +40,6 @@ Proje büyük model dosyaları içerdiği için parçalara bölünmüş bir bund
 - Tüm parçaları indirdiğinizden emin olun
 - Parçaları sırasıyla birleştirmek önemlidir
 - Herhangi bir sorun yaşarsanız Issues bölümünden bildirebilirsiniz
+
+## Test
+Bu satır GitHub senkronizasyonunu test etmek için eklenmiştir.
