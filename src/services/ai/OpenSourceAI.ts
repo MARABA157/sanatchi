@@ -4,7 +4,7 @@ export class OpenSourceAI {
   private static instance: OpenSourceAI;
   private readonly baseUrl = '/api'; // Proxy üzerinden
   private readonly HF_API = 'https://api-inference.huggingface.co/models';
-  private readonly HF_TOKEN = import.meta.env.VITE_HUGGINGFACE_API_TOKEN || '';
+  private readonly HF_TOKEN = import.meta.env.VITE_HUGGINGFACE_API_TOKEN;
   private readonly REPLICATE_API = 'https://api.replicate.com/v1';
   private readonly REPLICATE_TOKEN = import.meta.env.VITE_REPLICATE_API_TOKEN || '';
   private readonly CLOUDINARY_URL = 'https://api.cloudinary.com/v1_1';
@@ -21,7 +21,12 @@ export class OpenSourceAI {
 
   private readonly isTestMode = false;
 
-  private constructor() {}
+  constructor() {
+    console.log('HuggingFace Token:', this.HF_TOKEN ? 'Mevcut' : 'Eksik');
+    if (!this.HF_TOKEN) {
+      console.error('HuggingFace API token bulunamadı! Lütfen .env.local dosyasını kontrol edin.');
+    }
+  }
 
   public static getInstance(): OpenSourceAI {
     if (!OpenSourceAI.instance) {
