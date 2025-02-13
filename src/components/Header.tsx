@@ -56,42 +56,15 @@ export function Header() {
               </Button>
             </Link>
             <div className="relative">
-              <button
-                onClick={() => setIsAIMenuOpen(!isAIMenuOpen)}
-                className="flex items-center gap-x-1 text-sm font-semibold leading-6 text-gray-900"
+              <Link
+                to="/ai"
+                className="group relative inline-flex items-center justify-center px-6 py-2 overflow-hidden font-bold text-white rounded-lg shadow-2xl bg-gradient-to-br from-purple-600 via-pink-500 to-orange-400 hover:bg-gradient-to-bl transition-all duration-300 hover:scale-110 hover:rotate-2"
               >
-                AI
-                <ChevronDown
-                  className={`h-5 w-5 flex-none text-gray-400 ${
-                    isAIMenuOpen ? 'rotate-180' : ''
-                  }`}
-                  aria-hidden="true"
-                />
-              </button>
-
-              {isAIMenuOpen && (
-                <div className="absolute -left-8 top-full z-10 mt-3 w-screen max-w-md overflow-hidden rounded-3xl bg-white shadow-lg ring-1 ring-gray-900/5">
-                  <div className="p-4">
-                    {AI_FEATURES.map((item) => (
-                      <div
-                        key={item.name}
-                        className="group relative flex items-center gap-x-6 rounded-lg p-4 text-sm leading-6 hover:bg-gray-50"
-                      >
-                        <div className="flex-auto">
-                          <Link
-                            to={item.href}
-                            className="block font-semibold text-gray-900"
-                            onClick={() => setIsAIMenuOpen(false)}
-                          >
-                            {item.name}
-                            <span className="absolute inset-0" />
-                          </Link>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
+                <span className="absolute right-0 w-8 h-32 -mt-12 transition-all duration-1000 transform translate-x-12 bg-white opacity-10 rotate-12 group-hover:-translate-x-40 ease"></span>
+                <Sparkles className="w-5 h-5 mr-2 animate-bounce" />
+                AI Studio
+                <span className="absolute bottom-0 right-0 w-4 h-4 -mb-1 -mr-1 transition-all duration-500 transform rotate-45 translate-x-1 translate-y-1 bg-white opacity-10 group-hover:translate-x-0"></span>
+              </Link>
             </div>
             <Link to="/premium">
               <Button variant="ghost" size="sm" className="gap-2 text-white hover:text-amber-400 hover:bg-amber-500/10">
@@ -151,42 +124,15 @@ export function Header() {
                 </Button>
               </Link>
               <div className="relative">
-                <button
-                  onClick={() => setIsAIMenuOpen(!isAIMenuOpen)}
-                  className="flex items-center gap-x-1 text-sm font-semibold leading-6 text-gray-900 w-full justify-start"
+                <Link
+                  to="/ai"
+                  className="group relative inline-flex items-center justify-center px-6 py-2 overflow-hidden font-bold text-white rounded-lg shadow-2xl bg-gradient-to-br from-purple-600 via-pink-500 to-orange-400 hover:bg-gradient-to-bl transition-all duration-300 hover:scale-110 hover:rotate-2"
                 >
-                  AI
-                  <ChevronDown
-                    className={`h-5 w-5 flex-none text-gray-400 ${
-                      isAIMenuOpen ? 'rotate-180' : ''
-                    }`}
-                    aria-hidden="true"
-                  />
-                </button>
-
-                {isAIMenuOpen && (
-                  <div className="absolute -left-8 top-full z-10 mt-3 w-screen max-w-md overflow-hidden rounded-3xl bg-white shadow-lg ring-1 ring-gray-900/5">
-                    <div className="p-4">
-                      {AI_FEATURES.map((item) => (
-                        <div
-                          key={item.name}
-                          className="group relative flex items-center gap-x-6 rounded-lg p-4 text-sm leading-6 hover:bg-gray-50"
-                        >
-                          <div className="flex-auto">
-                            <Link
-                              to={item.href}
-                              className="block font-semibold text-gray-900"
-                              onClick={() => setIsAIMenuOpen(false)}
-                            >
-                              {item.name}
-                              <span className="absolute inset-0" />
-                            </Link>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
+                  <span className="absolute right-0 w-8 h-32 -mt-12 transition-all duration-1000 transform translate-x-12 bg-white opacity-10 rotate-12 group-hover:-translate-x-40 ease"></span>
+                  <Sparkles className="w-5 h-5 mr-2 animate-bounce" />
+                  AI Studio
+                  <span className="absolute bottom-0 right-0 w-4 h-4 -mb-1 -mr-1 transition-all duration-500 transform rotate-45 translate-x-1 translate-y-1 bg-white opacity-10 group-hover:translate-x-0"></span>
+                </Link>
               </div>
               <Link to="/premium">
                 <Button variant="ghost" size="sm" className="w-full justify-start gap-2">
