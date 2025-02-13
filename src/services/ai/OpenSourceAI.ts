@@ -14,7 +14,7 @@ export class OpenSourceAI {
 
   private readonly API_ENDPOINTS = {
     STABLE_DIFFUSION: `${this.HF_API}/runwayml/stable-diffusion-v1-5`,
-    CHAT_COMPLETION: `${this.HF_API}/microsoft/DialoGPT-medium`,
+    CHAT_COMPLETION: `${this.HF_API}/microsoft/DialoGPT-large`,
     VIDEO_GENERATION: `${this.CLOUDINARY_URL}/${this.CLOUDINARY_CLOUD_NAME}/video/generate`,
     AUDIO_GENERATION: `${this.CLOUDINARY_URL}/${this.CLOUDINARY_CLOUD_NAME}/audio/generate`
   };
@@ -98,13 +98,14 @@ export class OpenSourceAI {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          inputs: {
-            text: promptStr,
+          inputs: promptStr,
+          parameters: {
             max_length: 1000,
             temperature: 0.7,
             top_p: 0.9,
             top_k: 50,
-            num_return_sequences: 1
+            num_return_sequences: 1,
+            return_full_text: false
           }
         }),
       });
@@ -122,13 +123,9 @@ export class OpenSourceAI {
         throw new Error("HuggingFace geçersiz yanıt verdi");
       }
 
-      // DialoGPT'nin yanıtını al
+      // DialoGPT'nin yanıtını al ve temizle
       const generatedText = data[0]?.generated_text || data[0];
-      
-      // Prompt'u yanıttan çıkar
-      const cleanResponse = generatedText.replace(promptStr, '').trim();
-      
-      return cleanResponse || "Üzgünüm, yanıt üretemiyorum. Lütfen tekrar deneyin.";
+      return generatedText.trim() || "Üzgünüm, yanıt üretemiyorum. Lütfen tekrar deneyin.";
 
     } catch (error) {
       console.error('OpenSourceAI chat error:', error);
@@ -142,7 +139,7 @@ export class OpenSourceAI {
       const response = await this.chat(prompt);
       return {
         text: response,
-        model: 'DialoGPT-medium'
+        model: 'DialoGPT-large'
       };
     } catch (error) {
       console.error('OpenSourceAI chat completion error:', error);
