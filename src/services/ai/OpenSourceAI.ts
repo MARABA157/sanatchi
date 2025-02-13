@@ -14,7 +14,7 @@ export class OpenSourceAI {
 
   private readonly API_ENDPOINTS = {
     STABLE_DIFFUSION: `${this.HF_API}/runwayml/stable-diffusion-v1-5`,
-    CHAT_COMPLETION: `${this.HF_API}/google/flan-t5-base`,
+    CHAT_COMPLETION: `${this.HF_API}/meta-llama/Llama-2-7b-chat-hf`,
     VIDEO_GENERATION: `${this.CLOUDINARY_URL}/${this.CLOUDINARY_CLOUD_NAME}/video/generate`,
     AUDIO_GENERATION: `${this.CLOUDINARY_URL}/${this.CLOUDINARY_CLOUD_NAME}/audio/generate`
   };
@@ -95,7 +95,16 @@ export class OpenSourceAI {
           'Authorization': `Bearer ${this.HF_TOKEN}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ inputs: promptStr }),
+        body: JSON.stringify({
+          inputs: `<s>[INST] ${promptStr} [/INST]`,
+          parameters: {
+            max_new_tokens: 256,
+            temperature: 0.7,
+            top_p: 0.9,
+            do_sample: true,
+            return_full_text: false
+          }
+        }),
       });
 
       if (!response.ok) {
@@ -103,7 +112,7 @@ export class OpenSourceAI {
       }
 
       const data = await response.json();
-      return data.generated_text || "Üzgünüm, yanıt üretemiyorum.";
+      return data[0]?.generated_text || "Üzgünüm, yanıt üretemiyorum.";
 
     } catch (error) {
       console.error('Chat error:', error);
@@ -117,7 +126,7 @@ export class OpenSourceAI {
       const response = await this.chat(prompt);
       return {
         text: response,
-        model: 'google/flan-t5-base'
+        model: 'Llama-2'
       };
     } catch (error) {
       throw error;
