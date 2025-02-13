@@ -14,7 +14,7 @@ export class OpenSourceAI {
 
   private readonly API_ENDPOINTS = {
     STABLE_DIFFUSION: `${this.HF_API}/runwayml/stable-diffusion-v1-5`,
-    CHAT_COMPLETION: `${this.HF_API}/microsoft/DialoGPT-large`,
+    CHAT_COMPLETION: `${this.HF_API}/facebook/blenderbot-400M-distill`,
     VIDEO_GENERATION: `${this.CLOUDINARY_URL}/${this.CLOUDINARY_CLOUD_NAME}/video/generate`,
     AUDIO_GENERATION: `${this.CLOUDINARY_URL}/${this.CLOUDINARY_CLOUD_NAME}/audio/generate`
   };
@@ -89,46 +89,24 @@ export class OpenSourceAI {
         throw new Error('HuggingFace API token is not configured');
       }
 
-      console.log('Sending chat request with prompt:', promptStr);
-
       const response = await fetch(this.API_ENDPOINTS.CHAT_COMPLETION, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${this.HF_TOKEN}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          inputs: promptStr,
-          parameters: {
-            max_length: 1000,
-            temperature: 0.7,
-            top_p: 0.9,
-            top_k: 50,
-            num_return_sequences: 1,
-            return_full_text: false
-          }
-        }),
+        body: JSON.stringify({ inputs: promptStr }),
       });
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => null);
-        console.error('HuggingFace API error response:', errorData);
-        throw new Error(`HuggingFace API hatasi: ${response.status} - ${errorData?.error || response.statusText}`);
+        throw new Error(`HuggingFace API hatasi: ${response.status}`);
       }
 
       const data = await response.json();
-      console.log('HuggingFace API response:', data);
-
-      if (!data || !Array.isArray(data) || data.length === 0) {
-        throw new Error("HuggingFace geçersiz yanıt verdi");
-      }
-
-      // DialoGPT'nin yanıtını al ve temizle
-      const generatedText = data[0]?.generated_text || data[0];
-      return generatedText.trim() || "Üzgünüm, yanıt üretemiyorum. Lütfen tekrar deneyin.";
+      return data.generated_text || "Üzgünüm, yanıt üretemiyorum.";
 
     } catch (error) {
-      console.error('OpenSourceAI chat error:', error);
+      console.error('Chat error:', error);
       throw error;
     }
   }
@@ -139,10 +117,9 @@ export class OpenSourceAI {
       const response = await this.chat(prompt);
       return {
         text: response,
-        model: 'DialoGPT-large'
+        model: 'blenderbot'
       };
     } catch (error) {
-      console.error('OpenSourceAI chat completion error:', error);
       throw error;
     }
   }

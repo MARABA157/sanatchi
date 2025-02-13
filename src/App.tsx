@@ -4,7 +4,6 @@ import { Helmet } from 'react-helmet-async';
 import { Toaster } from '@/components/ui/toaster';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
-import AITester from '@/components/AITester';
 
 // Pages
 import Home from '@/pages/Home';
@@ -79,8 +78,6 @@ function App() {
           <Route path="/admin/*" element={<AdminDashboard />} />
         </Routes>
       </main>
-
-      <AITester />
 
       {!isAuthPage && <Footer />}
       <Toaster />
