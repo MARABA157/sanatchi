@@ -14,7 +14,7 @@ export class OpenSourceAI {
 
   private readonly API_ENDPOINTS = {
     STABLE_DIFFUSION: `${this.HF_API}/runwayml/stable-diffusion-v1-5`,
-    CHAT_COMPLETION: `${this.HF_API}/meta-llama/Llama-2-7b-chat-hf`,
+    CHAT_COMPLETION: 'http://localhost:11434/api/generate',
     VIDEO_GENERATION: `${this.CLOUDINARY_URL}/${this.CLOUDINARY_CLOUD_NAME}/video/generate`,
     AUDIO_GENERATION: `${this.CLOUDINARY_URL}/${this.CLOUDINARY_CLOUD_NAME}/audio/generate`
   };
@@ -85,34 +85,29 @@ export class OpenSourceAI {
   // Chat fonksiyonu
   public async chat(promptStr: string): Promise<string> {
     try {
-      if (!this.HF_TOKEN) {
-        throw new Error('HuggingFace API token is not configured');
-      }
-
       const response = await fetch(this.API_ENDPOINTS.CHAT_COMPLETION, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${this.HF_TOKEN}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          inputs: `<s>[INST] ${promptStr} [/INST]`,
-          parameters: {
-            max_new_tokens: 256,
+          model: "mistral",
+          prompt: promptStr,
+          stream: false,
+          options: {
             temperature: 0.7,
             top_p: 0.9,
-            do_sample: true,
-            return_full_text: false
+            max_tokens: 500
           }
         }),
       });
 
       if (!response.ok) {
-        throw new Error(`HuggingFace API hatasi: ${response.status}`);
+        throw new Error(`Ollama API hatasi: ${response.status}`);
       }
 
       const data = await response.json();
-      return data[0]?.generated_text || "Üzgünüm, yanıt üretemiyorum.";
+      return data.response || "Üzgünüm, yanıt üretemiyorum.";
 
     } catch (error) {
       console.error('Chat error:', error);
@@ -126,7 +121,7 @@ export class OpenSourceAI {
       const response = await this.chat(prompt);
       return {
         text: response,
-        model: 'Llama-2'
+        model: 'Mistral'
       };
     } catch (error) {
       throw error;
