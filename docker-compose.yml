@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  localai:
+    image: localai/localai:v2.9.0-ffmpeg-core
+    container_name: localai
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./localai-data:/models
+    environment:
+      - DEBUG=true
+      - THREADS=2
+      - CONTEXT_SIZE=512
+      - MODEL_PATH=/models/llama-3.2-1b-instruct-q4_k_m.gguf
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+    restart: always

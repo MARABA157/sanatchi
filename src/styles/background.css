@@ -1,0 +1,112 @@
+.hero-background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -2;
+}
+
+.hero-background::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  background-position: center;
+  animation: changeBackground 30s infinite;
+  transition: opacity 1s ease-in-out;
+}
+
+.hero-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.7) 0%,
+    rgba(0, 0, 0, 0.5) 50%,
+    rgba(0, 0, 0, 0.8) 100%
+  );
+  backdrop-filter: blur(8px);
+  z-index: -1;
+}
+
+@keyframes changeBackground {
+  0%, 22% {
+    background-image: url('/backgrounds/ocean.jpg');
+    opacity: 1;
+  }
+  25%, 47% {
+    background-image: url('/backgrounds/city.jpg');
+    opacity: 1;
+  }
+  50%, 72% {
+    background-image: url('/backgrounds/nature.jpg');
+    opacity: 1;
+  }
+  75%, 97% {
+    background-image: url('/backgrounds/night.jpg');
+    opacity: 1;
+  }
+  23%, 48%, 73%, 98% {
+    opacity: 0;
+  }
+}
+
+.floating-lights {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  z-index: -1;
+  pointer-events: none;
+}
+
+.light {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 50%;
+  filter: blur(2px);
+  animation: floatLight 15s infinite linear;
+}
+
+.light:nth-child(1) {
+  top: 20%;
+  left: 20%;
+  animation-delay: 0s;
+}
+
+.light:nth-child(2) {
+  top: 50%;
+  left: 50%;
+  animation-delay: -5s;
+}
+
+.light:nth-child(3) {
+  top: 80%;
+  left: 80%;
+  animation-delay: -10s;
+}
+
+@keyframes floatLight {
+  0% {
+    transform: translateY(0) translateX(0);
+    opacity: 0;
+  }
+  50% {
+    opacity: 0.5;
+  }
+  100% {
+    transform: translateY(-100vh) translateX(100px);
+    opacity: 0;
+  }
+}

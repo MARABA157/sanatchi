@@ -1,0 +1,85 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "success": "Operation successful"
+  },
+  "auth": {
+    "login": "Login",
+    "register": "Register",
+    "logout": "Logout",
+    "email": "Email",
+    "password": "Password",
+    "confirmPassword": "Confirm Password",
+    "forgotPassword": "Forgot Password",
+    "2fa": "Two-Factor Authentication",
+    "2faCode": "Verification Code",
+    "enable2fa": "Enable Two-Factor Authentication",
+    "disable2fa": "Disable Two-Factor Authentication"
+  },
+  "nav": {
+    "home": "Home",
+    "aiChat": "AI Chat",
+    "aiDev": "AI Development",
+    "aiVideo": "AI Video",
+    "aiMusic": "AI Music",
+    "premium": "Premium",
+    "profile": "Profile",
+    "settings": "Settings"
+  },
+  "features": {
+    "title": "AI Tools",
+    "subtitle": "Take your art to the next level with artificial intelligence",
+    "chat": {
+      "title": "AI Chat",
+      "description": "An AI assistant you can ask anything about art"
+    },
+    "dev": {
+      "title": "AI Development",
+      "description": "Develop your own art style with AI"
+    },
+    "video": {
+      "title": "AI Video",
+      "description": "Enhance your videos with artistic AI effects"
+    },
+    "music": {
+      "title": "AI Music",
+      "description": "Feed your music with artificial intelligence"
+    }
+  },
+  "gallery": {
+    "title": "Explore",
+    "subtitle": "Most liked works of our artists"
+  },
+  "profile": {
+    "title": "Profile",
+    "portfolio": "Portfolio",
+    "works": "Works",
+    "followers": "Followers",
+    "following": "Following",
+    "edit": "Edit Profile"
+  },
+  "workshop": {
+    "title": "AI Workshop",
+    "description": "Enhance your artworks with AI and create new ones",
+    "enhance": "Enhance",
+    "create": "Create",
+    "original": "Original Artwork",
+    "enhanced": "Enhanced Artwork",
+    "upload": "Upload Image",
+    "promptPlaceholder": "Describe how you want to enhance your artwork...",
+    "noEnhancedImage": "No enhanced artwork yet",
+    "share": "Share",
+    "download": "Download",
+    "comingSoon": "Coming Soon..."
+  },
+  "chat": {
+    "title": "AI Art Assistant",
+    "description": "Analyze your artworks, get suggestions, and discover new ideas",
+    "uploadImage": "Upload Image",
+    "analyze": "Analyze",
+    "describe": "Describe",
+    "askAboutArt": "Ask something about art...",
+    "send": "Send"
+  }
+}

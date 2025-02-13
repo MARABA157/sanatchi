@@ -1,0 +1,76 @@
+@keyframes backgroundTransition {
+  0%, 20% {
+    background-image: url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&q=80');
+    opacity: 1;
+  }
+  25%, 45% {
+    background-image: url('https://images.unsplash.com/photo-1480714378408-67cf0d13bc1b?auto=format&fit=crop&q=80');
+    opacity: 1;
+  }
+  50%, 70% {
+    background-image: url('https://images.unsplash.com/photo-1449824913935-59a10b8d2000?auto=format&fit=crop&q=80');
+    opacity: 1;
+  }
+  75%, 95% {
+    background-image: url('https://images.unsplash.com/photo-1444723121867-7a241cacace9?auto=format&fit=crop&q=80');
+    opacity: 1;
+  }
+  23%, 48%, 73%, 98% {
+    opacity: 0.3;
+  }
+}
+
+.animated-background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  background-position: center;
+  animation: backgroundTransition 30s infinite;
+  z-index: -1;
+}
+
+.background-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.4) 0%,
+    rgba(0, 0, 0, 0.6) 50%,
+    rgba(0, 0, 0, 0.8) 100%
+  );
+  backdrop-filter: blur(8px);
+  z-index: -1;
+}
+
+.mist-effect {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: 
+    repeating-linear-gradient(
+      0deg,
+      rgba(255, 255, 255, 0.1) 0%,
+      rgba(255, 255, 255, 0.2) 50%,
+      rgba(255, 255, 255, 0.1) 100%
+    );
+  opacity: 0.3;
+  animation: mistMove 20s infinite linear;
+  z-index: -1;
+}
+
+@keyframes mistMove {
+  0% {
+    background-position: 0 0;
+  }
+  100% {
+    background-position: 0 1000px;
+  }
+}

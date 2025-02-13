@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1920" height="1080" viewBox="0 0 1920 1080" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Gece Gökyüzü Gradyanı -->
+  <defs>
+    <linearGradient id="skyGradient" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0F172A"/>
+      <stop offset="50%" stop-color="#1E293B"/>
+      <stop offset="100%" stop-color="#334155"/>
+    </linearGradient>
+    
+    <!-- Ay Gradyanları -->
+    <radialGradient id="moonGlow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0%" stop-color="#FBBF24" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="#FBBF24" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="moon" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0%" stop-color="#FEF3C7"/>
+      <stop offset="100%" stop-color="#FDE68A"/>
+    </radialGradient>
+    
+    <!-- Pencere Işıkları -->
+    <filter id="windowGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="1" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+    
+    <!-- Yıldız Parlaması -->
+    <filter id="starGlow" x="-100%" y="-100%" width="300%" height="300%">
+      <feGaussianBlur stdDeviation="0.5" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
+
+  <!-- Arkaplan -->
+  <rect width="1920" height="1080" fill="url(#skyGradient)"/>
+  
+  <!-- Ay -->
+  <circle cx="1600" cy="200" r="80" fill="url(#moonGlow)"/>
+  <circle cx="1600" cy="200" r="70" fill="url(#moon)"/>
+
+  <!-- Yıldızlar -->
+  <g filter="url(#starGlow)">
+    <!-- Çok sayıda yıldız -->
+    <g id="stars">
+      <!-- Her yıldız için animasyon -->
+      <circle cx="300" cy="100" r="1" fill="white" opacity="0.8">
+        <animate attributeName="opacity" values="0.8;0.2;0.8" dur="3s" repeatCount="indefinite"/>
+      </circle>
+      <circle cx="500" cy="150" r="1" fill="white" opacity="0.6">
+        <animate attributeName="opacity" values="0.6;0.1;0.6" dur="4s" repeatCount="indefinite"/>
+      </circle>
+      <!-- Daha fazla yıldız ekle -->
+    </g>
+    <!-- stars grubunu 20 kez klonla ve farklı pozisyonlara yerleştir -->
+    <use href="#stars" x="400" y="0"/>
+    <use href="#stars" x="800" y="100"/>
+    <use href="#stars" x="1200" y="50"/>
+    <use href="#stars" x="1600" y="150"/>
+  </g>
+
+  <!-- İstanbul Silüeti -->
+  <g transform="translate(0, 600)">
+    <!-- Ayasofya -->
+    <path d="M800,200 L850,50 L900,200 Z" fill="#0F172A"/>
+    <circle cx="850" cy="70" r="20" fill="#0F172A"/>
+    <!-- Minareler -->
+    <rect x="830" y="0" width="5" height="100" fill="#0F172A"/>
+    <rect x="865" y="0" width="5" height="100" fill="#0F172A"/>
+    
+    <!-- Sultan Ahmet Camii -->
+    <path d="M1000,200 L1050,30 L1100,200 Z" fill="#1E293B"/>
+    <circle cx="1050" cy="50" r="25" fill="#1E293B"/>
+    <!-- Minareler -->
+    <rect x="1030" y="0" width="5" height="120" fill="#1E293B"/>
+    <rect x="1065" y="0" width="5" height="120" fill="#1E293B"/>
+    
+    <!-- Galata Kulesi -->
+    <path d="M600,200 L620,0 L640,200 Z" fill="#334155"/>
+    <circle cx="620" cy="20" r="15" fill="#334155"/>
+    
+    <!-- Binalar -->
+    <g filter="url(#windowGlow)">
+      <!-- Modern Binalar -->
+      <rect x="100" y="50" width="80" height="150" fill="#1E293B"/>
+      <rect x="200" y="20" width="60" height="180" fill="#334155"/>
+      <rect x="300" y="70" width="70" height="130" fill="#0F172A"/>
+      <rect x="400" y="30" width="90" height="170" fill="#1E293B"/>
+      <rect x="700" y="40" width="75" height="160" fill="#334155"/>
+      <rect x="1200" y="60" width="85" height="140" fill="#0F172A"/>
+      <rect x="1300" y="25" width="65" height="175" fill="#1E293B"/>
+      <rect x="1400" y="45" width="70" height="155" fill="#334155"/>
+      <rect x="1500" y="35" width="80" height="165" fill="#0F172A"/>
+      <rect x="1600" y="55" width="75" height="145" fill="#1E293B"/>
+      
+      <!-- Pencere Işıkları -->
+      <g>
+        <!-- Her bina için rastgele pencere ışıkları -->
+        <rect x="110" y="70" width="10" height="10" fill="#FDE68A" opacity="0.8">
+          <animate attributeName="opacity" values="0.8;0.3;0.8" dur="4s" repeatCount="indefinite"/>
+        </rect>
+        <rect x="130" y="90" width="10" height="10" fill="#FDE68A" opacity="0.6">
+          <animate attributeName="opacity" values="0.6;0.2;0.6" dur="3s" repeatCount="indefinite"/>
+        </rect>
+        <!-- Daha fazla pencere ekle -->
+      </g>
+    </g>
+  </g>
+
+  <!-- Boğaz -->
+  <path d="M0,800 C500,750 1000,850 1920,800" fill="#1E293B" opacity="0.8"/>
+  
+  <!-- Boğaz Üzerinde Yansımalar -->
+  <g opacity="0.3">
+    <path d="M100,800 L120,900 L80,900 Z" fill="#FDE68A">
+      <animate attributeName="opacity" values="0.3;0.1;0.3" dur="5s" repeatCount="indefinite"/>
+    </path>
+    <path d="M500,800 L520,900 L480,900 Z" fill="#FDE68A">
+      <animate attributeName="opacity" values="0.3;0.1;0.3" dur="4s" repeatCount="indefinite"/>
+    </path>
+    <path d="M900,800 L920,900 L880,900 Z" fill="#FDE68A">
+      <animate attributeName="opacity" values="0.3;0.1;0.3" dur="6s" repeatCount="indefinite"/>
+    </path>
+    <path d="M1300,800 L1320,900 L1280,900 Z" fill="#FDE68A">
+      <animate attributeName="opacity" values="0.3;0.1;0.3" dur="5s" repeatCount="indefinite"/>
+    </path>
+    <path d="M1700,800 L1720,900 L1680,900 Z" fill="#FDE68A">
+      <animate attributeName="opacity" values="0.3;0.1;0.3" dur="4s" repeatCount="indefinite"/>
+    </path>
+  </g>
+</svg>

@@ -1,0 +1,110 @@
+/* Gradient animations */
+@keyframes gradientFlow {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.gradient-bg {
+  background: linear-gradient(45deg, #FF6B6B, #4ECDC4, #45B7D1);
+  background-size: 200% 200%;
+  animation: gradientFlow 10s ease infinite;
+}
+
+/* Button hover effects */
+.try-button {
+  transition: all 0.3s ease;
+}
+
+.try-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+}
+
+/* Feature card hover effects */
+.feature-card {
+  transition: all 0.3s ease;
+}
+
+.feature-card:hover {
+  transform: translateY(-5px);
+}
+
+/* Image container effects */
+.image-container {
+  position: relative;
+  overflow: hidden;
+}
+
+.image-container::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(45deg, rgba(147, 51, 234, 0.2), rgba(236, 72, 153, 0.2));
+  mix-blend-mode: overlay;
+  pointer-events: none;
+}
+
+/* Floating animation for decorative elements */
+@keyframes float {
+  0% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+  100% {
+    transform: translateY(0px);
+  }
+}
+
+.floating {
+  animation: float 6s ease-in-out infinite;
+}
+
+/* Sparkle animation */
+@keyframes sparkle {
+  0% {
+    transform: scale(1) rotate(0deg);
+  }
+  50% {
+    transform: scale(1.2) rotate(180deg);
+  }
+  100% {
+    transform: scale(1) rotate(360deg);
+  }
+}
+
+.sparkle {
+  animation: sparkle 2s ease-in-out infinite;
+}
+
+/* Dark mode specific styles */
+.dark .feature-card {
+  background: rgba(31, 41, 55, 0.8);
+  backdrop-filter: blur(10px);
+}
+
+.dark .try-button {
+  box-shadow: 0 0 20px rgba(147, 51, 234, 0.3);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .feature-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .image-container {
+    margin-top: 2rem;
+  }
+}
