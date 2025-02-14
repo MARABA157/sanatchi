@@ -15,10 +15,11 @@ export default defineConfig({
     host: true,
     open: true,
     proxy: {
-      '/api': {
+      '/api/generate': {
         target: 'http://localhost:11434',
         changeOrigin: true,
         secure: false,
+        rewrite: (path) => path.replace(/^\/api/, ''),
         configure: (proxy, _options) => {
           proxy.on('error', (err, _req, _res) => {
             console.log('proxy error', err);
@@ -38,15 +39,6 @@ export default defineConfig({
         rewrite: (path) => path.replace(/^\/huggingface/, ''),
         headers: {
           'Authorization': `Bearer ${process.env.VITE_HUGGINGFACE_API_TOKEN}`
-        }
-      },
-      '/replicate': {
-        target: 'https://api.replicate.com/v1',
-        changeOrigin: true,
-        secure: true,
-        rewrite: (path) => path.replace(/^\/replicate/, ''),
-        headers: {
-          'Authorization': `Token ${process.env.VITE_REPLICATE_API_TOKEN}`
         }
       }
     }
