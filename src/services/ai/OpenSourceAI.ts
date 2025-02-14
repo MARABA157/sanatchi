@@ -16,9 +16,10 @@ export class OpenSourceAI {
     STABLE_DIFFUSION: `${this.HF_API}/stabilityai/stable-diffusion-xl-base-1.0`,
     CHAT_COMPLETION_HF: `${this.HF_API}/microsoft/phi-2`,
     CHAT_COMPLETION_OLLAMA: 'http://localhost:11434/api/generate',
-    VIDEO_GENERATION: `${this.CLOUDINARY_URL}/${this.CLOUDINARY_CLOUD_NAME}/video/generate`,
-    VIDEO_GENERATION_REPLICATE: 'https://api.replicate.com/v1/predictions',
-    AUDIO_GENERATION: `${this.CLOUDINARY_URL}/${this.CLOUDINARY_CLOUD_NAME}/audio/generate`
+    VIDEO_GENERATION: `${this.REPLICATE_API}/predictions`,
+    VIDEO_GENERATION_REPLICATE: `${this.REPLICATE_API}/predictions`,
+    AUDIO_GENERATION: `${this.REPLICATE_API}/predictions`,
+    MUSIC_GENERATION: `${this.REPLICATE_API}/predictions`
   };
 
   private readonly VIDEO_MODELS = {
@@ -48,6 +49,11 @@ export class OpenSourceAI {
       num_inference_steps: 50
     }
   };
+
+  private readonly CHAT_MODEL = "meta/llama-2-70b-chat:02e509c789964a7ea8736978a43525956ef40397be9033abf9fd2badfe68c9e3";
+
+  private readonly AUDIO_MODEL = "meta/musicgen:7a76a8258b23fae65c5a22debb8841d1d7e816b75c2f24218cd2bd8573787906";
+  private readonly MUSIC_MODEL = "meta/musicgen:7a76a8258b23fae65c5a22debb8841d1d7e816b75c2f24218cd2bd8573787906";
 
   private readonly IS_DEVELOPMENT = process.env.NODE_ENV === 'development';
 
@@ -122,96 +128,66 @@ export class OpenSourceAI {
     }
   }
 
-  // Chat fonksiyonu
-  public async chat(promptStr: string): Promise<{ text: string; model: string }> {
+  // Chat tamamlama
+  public async generateChatCompletion(prompt: string): Promise<string> {
     try {
-      const response = await fetch('/api/chat', {
+      if (!this.REPLICATE_TOKEN) {
+        throw new Error('Replicate API token is not configured');
+      }
+
+      console.log('Generating chat completion with prompt:', prompt);
+
+      const response = await fetch(this.API_ENDPOINTS.CHAT_COMPLETION, {
         method: 'POST',
         headers: {
+          'Authorization': `Token ${this.REPLICATE_TOKEN}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ prompt: promptStr }),
+        body: JSON.stringify({
+          version: this.CHAT_MODEL,
+          input: {
+            prompt: `[INST] ${prompt} [/INST]`,
+            max_new_tokens: 500,
+            temperature: 0.7,
+            top_p: 0.9,
+            top_k: 50,
+            presence_penalty: 1,
+            frequency_penalty: 1,
+          }
+        })
       });
 
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Chat API error');
+        throw new Error(`Chat completion failed: ${response.statusText}`);
       }
 
       const data = await response.json();
-      return {
-        text: data.text,
-        model: data.model
-      };
-    } catch (error) {
-      console.error('Chat error:', error);
-      throw error;
-    }
-  }
+      const result = await this.waitForReplicateResult(data.id);
+      
+      if (!result || !result.join) {
+        throw new Error('No chat completion generated');
+      }
 
-  public async chatCompletion(prompt: string) {
-    try {
-      return await this.chat(prompt);
+      return result.join('');
     } catch (error) {
+      console.error('Error generating chat completion:', error);
       throw error;
     }
   }
 
   // Video Oluşturma
-  public async generateVideo(prompt: string, options: {
-    model?: 'zeroscope' | 'modelscope' | 'animatediff' | 'cloudinary',
-    fps?: number,
-    num_frames?: number,
-    duration?: number
-  } = {}) {
+  public async generateVideo(prompt: string, model: keyof typeof this.VIDEO_MODELS = 'ZEROSCOPE'): Promise<{ url: string }> {
     try {
-      const model = options.model || 'zeroscope';
-
-      // Cloudinary kullan
-      if (model === 'cloudinary') {
-        return this.generateVideoWithCloudinary(prompt);
-      }
-
-      // Replicate token kontrolü
       if (!this.REPLICATE_TOKEN) {
         throw new Error('Replicate API token is not configured');
       }
 
-      console.log(`Generating video with ${model}...`);
+      console.log('Generating video with prompt:', prompt, 'using model:', model);
 
-      // Model seçimi
-      let modelVersion = '';
-      let settings = {};
-      
-      switch (model) {
-        case 'zeroscope':
-          modelVersion = this.VIDEO_MODELS.ZEROSCOPE;
-          settings = {
-            ...this.VIDEO_SETTINGS.ZEROSCOPE,
-            fps: options.fps || this.VIDEO_SETTINGS.ZEROSCOPE.fps,
-            num_frames: options.num_frames || this.VIDEO_SETTINGS.ZEROSCOPE.num_frames
-          };
-          break;
-        case 'modelscope':
-          modelVersion = this.VIDEO_MODELS.MODELSCOPE;
-          settings = {
-            ...this.VIDEO_SETTINGS.MODELSCOPE,
-            fps: options.fps || this.VIDEO_SETTINGS.MODELSCOPE.fps,
-            num_frames: options.num_frames || this.VIDEO_SETTINGS.MODELSCOPE.num_frames
-          };
-          break;
-        case 'animatediff':
-          modelVersion = this.VIDEO_MODELS.ANIMATEDIFF;
-          settings = {
-            ...this.VIDEO_SETTINGS.ANIMATEDIFF,
-            fps: options.fps || this.VIDEO_SETTINGS.ANIMATEDIFF.fps,
-            num_frames: options.num_frames || this.VIDEO_SETTINGS.ANIMATEDIFF.num_frames
-          };
-          break;
-      }
+      const modelVersion = this.VIDEO_MODELS[model];
+      const settings = this.VIDEO_SETTINGS[model];
 
-      // API isteği
-      const response = await fetch(this.API_ENDPOINTS.VIDEO_GENERATION_REPLICATE, {
+      const response = await fetch(this.API_ENDPOINTS.VIDEO_GENERATION, {
         method: 'POST',
         headers: {
           'Authorization': `Token ${this.REPLICATE_TOKEN}`,
@@ -227,31 +203,130 @@ export class OpenSourceAI {
       });
 
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(`Replicate API error: ${error.detail || response.statusText}`);
+        throw new Error(`Video generation failed: ${response.statusText}`);
       }
 
-      const prediction = await response.json();
-      console.log('Prediction started:', prediction);
+      const data = await response.json();
+      const result = await this.waitForReplicateResult(data.id);
+      
+      if (!result || !result[0]) {
+        throw new Error('No video generated');
+      }
 
-      // Sonucu bekle
-      const result = await this.waitForReplicateResult(prediction.id);
-      console.log('Video generated:', result);
-
-      return {
-        url: result.output,
-        model: model
-      };
+      return { url: result[0] };
     } catch (error) {
-      console.error('Video generation error:', error);
+      console.error('Error generating video:', error);
+      throw error;
+    }
+  }
+
+  // Ses Oluşturma
+  public async generateAudio(prompt: string, duration: number, speed: number = 1.0): Promise<{ url: string }> {
+    try {
+      if (!this.REPLICATE_TOKEN) {
+        throw new Error('Replicate API token is not configured');
+      }
+
+      console.log('Generating audio with prompt:', prompt);
+
+      const response = await fetch(this.API_ENDPOINTS.AUDIO_GENERATION, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Token ${this.REPLICATE_TOKEN}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          version: this.AUDIO_MODEL,
+          input: {
+            prompt: prompt,
+            duration: duration,
+            model_version: "melody",
+            output_format: "wav",
+            temperature: 1,
+            speed: speed,
+            top_k: 250,
+            top_p: 0.9,
+          }
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Audio generation failed: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      
+      // Replicate asenkron çalışır, sonucu bekleyelim
+      const result = await this.waitForReplicateResult(data.id);
+      
+      if (!result || !result[0]) {
+        throw new Error('No audio generated');
+      }
+
+      return { url: result[0] };
+    } catch (error) {
+      console.error('Error generating audio:', error);
+      throw error;
+    }
+  }
+
+  // Müzik Oluşturma
+  public async generateMusic(prompt: string, duration: number, tempo: number = 120): Promise<{ url: string }> {
+    try {
+      if (!this.REPLICATE_TOKEN) {
+        throw new Error('Replicate API token is not configured');
+      }
+
+      console.log('Generating music with prompt:', prompt);
+
+      const response = await fetch(this.API_ENDPOINTS.MUSIC_GENERATION, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Token ${this.REPLICATE_TOKEN}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          version: this.MUSIC_MODEL,
+          input: {
+            prompt: prompt,
+            duration: duration,
+            model_version: "large",
+            output_format: "wav",
+            temperature: 1,
+            tempo: tempo,
+            top_k: 250,
+            top_p: 0.9,
+          }
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Music generation failed: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      
+      // Replicate asenkron çalışır, sonucu bekleyelim
+      const result = await this.waitForReplicateResult(data.id);
+      
+      if (!result || !result[0]) {
+        throw new Error('No music generated');
+      }
+
+      return { url: result[0] };
+    } catch (error) {
+      console.error('Error generating music:', error);
       throw error;
     }
   }
 
   // Replicate sonucunu bekle
-  private async waitForReplicateResult(predictionId: string, maxAttempts: number = 60): Promise<any> {
-    for (let i = 0; i < maxAttempts; i++) {
-      const response = await fetch(`${this.API_ENDPOINTS.VIDEO_GENERATION_REPLICATE}/${predictionId}`, {
+  private async waitForReplicateResult(id: string): Promise<string[]> {
+    const maxAttempts = 60; // 5 dakika (5s * 60)
+    let attempts = 0;
+
+    while (attempts < maxAttempts) {
+      const response = await fetch(`${this.API_ENDPOINTS.MUSIC_GENERATION}/${id}`, {
         headers: {
           'Authorization': `Token ${this.REPLICATE_TOKEN}`,
         },
@@ -264,128 +339,16 @@ export class OpenSourceAI {
       const prediction = await response.json();
 
       if (prediction.status === 'succeeded') {
-        return prediction;
+        return prediction.output;
+      } else if (prediction.status === 'failed') {
+        throw new Error('Generation failed');
       }
 
-      if (prediction.status === 'failed') {
-        throw new Error(`Prediction failed: ${prediction.error}`);
-      }
-
-      // 2 saniye bekle
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      attempts++;
+      await new Promise(resolve => setTimeout(resolve, 5000)); // 5 saniye bekle
     }
 
-    throw new Error('Prediction timed out');
-  }
-
-  // Cloudinary ile video oluştur
-  private async generateVideoWithCloudinary(prompt: string) {
-    if (!this.CLOUDINARY_CLOUD_NAME || !this.CLOUDINARY_API_KEY || !this.CLOUDINARY_API_SECRET) {
-      throw new Error('Cloudinary credentials are not configured');
-    }
-
-    const timestamp = Math.round((new Date()).getTime() / 1000);
-    const signature = await this.generateSignature(timestamp, 'video');
-
-    const formData = new FormData();
-    formData.append('timestamp', timestamp.toString());
-    formData.append('api_key', this.CLOUDINARY_API_KEY);
-    formData.append('signature', signature);
-    formData.append('prompt', prompt);
-    formData.append('model', 'stable-diffusion');
-
-    const response = await fetch(this.API_ENDPOINTS.VIDEO_GENERATION, {
-      method: 'POST',
-      body: formData
-    });
-
-    if (!response.ok) {
-      throw new Error(`Cloudinary API error: ${response.status}`);
-    }
-
-    const data = await response.json();
-    return {
-      url: data.secure_url,
-      model: 'cloudinary'
-    };
-  }
-
-  // Ses Oluşturma
-  public async generateAudio(prompt: string, duration: number = 30, speed: number = 1.0) {
-    try {
-      if (!this.CLOUDINARY_CLOUD_NAME || !this.CLOUDINARY_API_KEY || !this.CLOUDINARY_API_SECRET) {
-        throw new Error('Cloudinary credentials are not configured');
-      }
-
-      const timestamp = Math.round((new Date()).getTime() / 1000);
-      const signature = await this.generateSignature(timestamp, 'audio');
-
-      const formData = new FormData();
-      formData.append('timestamp', timestamp.toString());
-      formData.append('api_key', this.CLOUDINARY_API_KEY);
-      formData.append('signature', signature);
-      formData.append('prompt', prompt);
-      formData.append('model', 'text-to-speech');
-      formData.append('duration', duration.toString());
-      formData.append('speed', speed.toString());
-      formData.append('voice', 'tr-TR-Standard-A'); // Türkçe ses
-      formData.append('audio_codec', 'mp3');
-      formData.append('bit_rate', '192k');
-      formData.append('sample_rate', '44100');
-
-      console.log('Generating audio with parameters:', {
-        prompt,
-        duration,
-        speed,
-        timestamp
-      });
-
-      const response = await fetch(this.API_ENDPOINTS.AUDIO_GENERATION, {
-        method: 'POST',
-        body: formData
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => null);
-        console.error('Cloudinary API error:', errorData);
-        throw new Error(`Cloudinary API error: ${response.status} - ${JSON.stringify(errorData)}`);
-      }
-
-      const data = await response.json();
-      console.log('Audio generation response:', data);
-
-      return {
-        url: data.secure_url,
-        model: 'cloudinary-audio',
-        duration: data.duration || duration
-      };
-    } catch (error) {
-      console.error('Audio generation error:', error);
-      throw error;
-    }
-  }
-
-  // Cloudinary imza oluşturma
-  private async generateSignature(timestamp: number, resourceType: 'video' | 'audio') {
-    const params = {
-      timestamp,
-      resource_type: resourceType,
-      api_key: this.CLOUDINARY_API_KEY
-    };
-
-    const stringToSign = Object.entries(params)
-      .sort(([a], [b]) => a.localeCompare(b))
-      .map(([key, value]) => `${key}=${value}`)
-      .join('&') + this.CLOUDINARY_API_SECRET;
-
-    // SHA-1 hash oluştur
-    const encoder = new TextEncoder();
-    const data = encoder.encode(stringToSign);
-    const hashBuffer = await crypto.subtle.digest('SHA-1', data);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-    
-    return hashHex;
+    throw new Error('Generation timed out');
   }
 
   // Video ve Resim oluşturma işlemleri için CORS proxy kullanılmalı
@@ -438,5 +401,28 @@ export class OpenSourceAI {
     }
 
     throw new Error('Timeout waiting for prediction');
+  }
+
+  // Cloudinary imza oluşturma
+  private async generateSignature(timestamp: number, resourceType: 'video' | 'audio') {
+    const params = {
+      timestamp,
+      resource_type: resourceType,
+      api_key: this.CLOUDINARY_API_KEY
+    };
+
+    const stringToSign = Object.entries(params)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([key, value]) => `${key}=${value}`)
+      .join('&') + this.CLOUDINARY_API_SECRET;
+
+    // SHA-1 hash oluştur
+    const encoder = new TextEncoder();
+    const data = encoder.encode(stringToSign);
+    const hashBuffer = await crypto.subtle.digest('SHA-1', data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    
+    return hashHex;
   }
 }

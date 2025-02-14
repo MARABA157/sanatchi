@@ -26,14 +26,15 @@ export default function Audio() {
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
 
   const handleGenerate = async () => {
-    if (!prompt) return;
+    if (!prompt || generating) return;
     setGenerating(true);
     
     try {
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      setAudioUrl('demo.mp3');
+      const ai = OpenSourceAI.getInstance();
+      const result = await ai.generateAudio(prompt, duration, speed);
+      setAudioUrl(result.url);
     } catch (error) {
-      console.error('Music generation error:', error);
+      console.error('Audio generation error:', error);
     } finally {
       setGenerating(false);
     }
@@ -164,7 +165,7 @@ export default function Audio() {
                 {/* Oluştur Butonu */}
                 <Button
                   size="lg"
-                  onClick={handleSubmit}
+                  onClick={handleGenerate}
                   disabled={!prompt || generating}
                   className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-lg h-14 shadow-lg shadow-purple-500/30"
                 >

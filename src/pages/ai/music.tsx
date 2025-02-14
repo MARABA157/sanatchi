@@ -25,12 +25,13 @@ export default function MusicGeneration() {
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
 
   const handleGenerate = async () => {
-    if (!prompt) return;
+    if (!prompt || generating) return;
     setGenerating(true);
     
     try {
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      setAudioUrl('demo.mp3');
+      const ai = OpenSourceAI.getInstance();
+      const result = await ai.generateMusic(prompt, duration, tempo);
+      setAudioUrl(result.url);
     } catch (error) {
       console.error('Music generation error:', error);
     } finally {

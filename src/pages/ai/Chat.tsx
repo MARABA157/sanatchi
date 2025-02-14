@@ -28,15 +28,15 @@ const AIChat = () => {
 
     try {
       const ai = OpenSourceAI.getInstance();
-      const response = await ai.chatCompletion(userMessage);
+      const response = await ai.generateChatCompletion(userMessage);
 
       // AI yanıtını ekle
-      setMessages(prev => [...prev, { role: 'assistant', content: response.text }]);
-    } catch (error) {
+      setMessages(prev => [...prev, { role: 'assistant', content: response }]);
+    } catch (error: any) {
       console.error('Chat error:', error);
       setMessages(prev => [...prev, { 
         role: 'assistant', 
-        content: 'Üzgünüm, bir hata oluştu. Lütfen tekrar deneyin.' 
+        content: `Üzgünüm, bir hata oluştu: ${error.message}` 
       }]);
     } finally {
       setLoading(false);
