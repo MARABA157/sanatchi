@@ -6,7 +6,14 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
   
   return {
-    plugins: [react()],
+    plugins: [
+      react({
+        jsxImportSource: '@emotion/react',
+        babel: {
+          plugins: ['@emotion/babel-plugin'],
+        },
+      }),
+    ],
     resolve: {
       alias: {
         '@': path.resolve(__dirname, './src')
@@ -17,6 +24,23 @@ export default defineConfig(({ mode }) => {
       strictPort: true,
       host: true,
       open: true,
+      headers: {
+        'Content-Security-Policy': `
+          default-src 'self';
+          connect-src 'self' 
+            https://*.supabase.co 
+            https://huggingface.co 
+            https://*.huggingface.co 
+            https://api-inference.huggingface.co
+            https://*.stability.ai
+            https://api.stability.ai;
+          img-src 'self' blob: data:;
+          media-src 'self' blob: data:;
+          script-src 'self' 'unsafe-inline' 'unsafe-eval';
+          style-src 'self' 'unsafe-inline';
+          frame-src 'self';
+        `.replace(/\s+/g, ' ').trim(),
+      },
       proxy: {
         '/api/generate': {
           target: 'http://localhost:11434',
