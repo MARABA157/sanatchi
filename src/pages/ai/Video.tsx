@@ -1,23 +1,13 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Loader2, Download, Share2, Sparkles } from 'lucide-react';
 import { OpenSourceAI } from '@/services/ai/OpenSourceAI';
-
-const VIDEO_MODELS = [
-  { id: 'ZEROSCOPE', name: 'ZeroScope XL (En İyi)' },
-  { id: 'MODELSCOPE', name: 'ModelScope (Hızlı)' },
-  { id: 'ANIMATEDIFF', name: 'AnimateDiff (Anime Tarzı)' }
-] as const;
-
-type VideoModel = typeof VIDEO_MODELS[number]['id'];
 
 export default function AiVideo() {
   const [prompt, setPrompt] = useState('');
   const [generating, setGenerating] = useState(false);
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
-  const [selectedModel, setSelectedModel] = useState<VideoModel>('ZEROSCOPE');
   const [error, setError] = useState<string | null>(null);
 
   const handleGenerate = async () => {
@@ -29,7 +19,7 @@ export default function AiVideo() {
     
     try {
       const ai = OpenSourceAI.getInstance();
-      const result = await ai.generateVideo(prompt, selectedModel);
+      const result = await ai.generateVideo(prompt);
       setVideoUrl(result.url);
     } catch (error: any) {
       console.error('Video generation error:', error);
@@ -89,33 +79,6 @@ export default function AiVideo() {
                   </h2>
                   
                   <div className="space-y-6">
-                    {/* Model Seçimi */}
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium text-gray-300">
-                        Video Modeli
-                      </label>
-                      <Select
-                        value={selectedModel}
-                        onValueChange={(value) => setSelectedModel(value as VideoModel)}
-                      >
-                        <SelectTrigger className="bg-black/30 border-white/20 text-white">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {VIDEO_MODELS.map((model) => (
-                            <SelectItem key={model.id} value={model.id}>
-                              {model.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <p className="text-xs text-gray-400 mt-1">
-                        {selectedModel === 'ZEROSCOPE' && 'En yüksek kaliteli video üretimi, daha uzun sürer'}
-                        {selectedModel === 'MODELSCOPE' && 'Hızlı video üretimi, orta kalite'}
-                        {selectedModel === 'ANIMATEDIFF' && 'Anime ve çizgi film tarzı videolar'}
-                      </p>
-                    </div>
-
                     {/* Açıklama */}
                     <div className="space-y-2">
                       <label className="text-sm font-medium text-gray-300">
