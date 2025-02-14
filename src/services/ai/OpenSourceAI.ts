@@ -14,8 +14,7 @@ export class OpenSourceAI {
 
   private readonly API_ENDPOINTS = {
     STABLE_DIFFUSION: `${this.HF_API}/stabilityai/stable-diffusion-xl-base-1.0`,
-    CHAT_COMPLETION_HF: `${this.HF_API}/microsoft/phi-2`,
-    CHAT_COMPLETION_OLLAMA: 'http://localhost:11434/api/generate',
+    CHAT_COMPLETION: 'http://localhost:11434/api/generate',
     VIDEO_GENERATION: `${this.REPLICATE_API}/predictions`,
     VIDEO_GENERATION_REPLICATE: `${this.REPLICATE_API}/predictions`,
     AUDIO_GENERATION: `${this.REPLICATE_API}/predictions`,
@@ -50,7 +49,7 @@ export class OpenSourceAI {
     }
   };
 
-  private readonly CHAT_MODEL = "meta/llama-2-70b-chat:02e509c789964a7ea8736978a43525956ef40397be9033abf9fd2badfe68c9e3";
+  private readonly CHAT_MODEL = "llama2";
 
   private readonly AUDIO_MODEL = "meta/musicgen:7a76a8258b23fae65c5a22debb8841d1d7e816b75c2f24218cd2bd8573787906";
   private readonly MUSIC_MODEL = "meta/musicgen:7a76a8258b23fae65c5a22debb8841d1d7e816b75c2f24218cd2bd8573787906";
@@ -131,28 +130,25 @@ export class OpenSourceAI {
   // Chat tamamlama
   public async generateChatCompletion(prompt: string): Promise<string> {
     try {
-      if (!this.REPLICATE_TOKEN) {
-        throw new Error('Replicate API token is not configured');
-      }
-
       console.log('Generating chat completion with prompt:', prompt);
 
       const response = await fetch(this.API_ENDPOINTS.CHAT_COMPLETION, {
         method: 'POST',
         headers: {
-          'Authorization': `Token ${this.REPLICATE_TOKEN}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          version: this.CHAT_MODEL,
-          input: {
-            prompt: `[INST] ${prompt} [/INST]`,
-            max_new_tokens: 500,
+          model: this.CHAT_MODEL,
+          prompt: prompt,
+          stream: false,
+          options: {
             temperature: 0.7,
             top_p: 0.9,
-            top_k: 50,
-            presence_penalty: 1,
-            frequency_penalty: 1,
+            top_k: 40,
+            num_ctx: 4096,
+            num_predict: 256,
+            stop: ["Human:", "Assistant:"],
+            repeat_penalty: 1.1
           }
         })
       });
@@ -162,16 +158,19 @@ export class OpenSourceAI {
       }
 
       const data = await response.json();
-      const result = await this.waitForReplicateResult(data.id);
       
-      if (!result || !result.join) {
+      if (!data.response) {
         throw new Error('No chat completion generated');
       }
 
-      return result.join('');
+      return data.response;
     } catch (error) {
       console.error('Error generating chat completion:', error);
-      throw error;
+      if (error instanceof Error) {
+        throw new Error(`Chat hatası: ${error.message}`);
+      } else {
+        throw new Error('Bilinmeyen bir chat hatası oluştu');
+      }
     }
   }
 
