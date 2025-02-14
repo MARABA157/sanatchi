@@ -4,13 +4,14 @@ import { ThemeToggle } from '@/components/ThemeToggle';
 import { Bot, Sparkles, Video, Menu, X, LogIn, UserPlus, Search, Wand2, Crown, Music, ChevronDown } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
 const AI_FEATURES = [
-  { name: 'Resim Üret', href: '/ai/generate' },
-  { name: 'Video Üret', href: '/ai/video' },
-  { name: 'Müzik Üret', href: '/ai/music' },
-  { name: 'Resim Geliştir', href: '/ai/enhancement' },
-  { name: 'Stil Transferi', href: '/ai/style-transfer' },
+  { name: 'AI Sohbet', href: '/ai/chat' },
+  { name: 'Video Oluştur', href: '/ai/video' },
+  { name: 'Ses Oluştur', href: '/ai/audio' },
+  { name: 'Müzik Oluştur', href: '/ai/music' },
+  { name: 'Resim Oluştur', href: '/ai/image' },
 ];
 
 export function Header() {
@@ -56,15 +57,23 @@ export function Header() {
               </Button>
             </Link>
             <div className="relative">
-              <Link
-                to="/ai"
-                className="group relative inline-flex items-center justify-center px-6 py-2 overflow-hidden font-bold text-white rounded-lg shadow-2xl bg-gradient-to-br from-purple-600 via-pink-500 to-orange-400 hover:bg-gradient-to-bl transition-all duration-300 hover:scale-110 hover:rotate-2"
-              >
-                <span className="absolute right-0 w-8 h-32 -mt-12 transition-all duration-1000 transform translate-x-12 bg-white opacity-10 rotate-12 group-hover:-translate-x-40 ease"></span>
-                <Sparkles className="w-5 h-5 mr-2 animate-bounce" />
-                AI Studio
-                <span className="absolute bottom-0 right-0 w-4 h-4 -mb-1 -mr-1 transition-all duration-500 transform rotate-45 translate-x-1 translate-y-1 bg-white opacity-10 group-hover:translate-x-0"></span>
-              </Link>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" className="relative h-9 w-full justify-start text-sm font-normal md:w-40 md:font-medium">
+                    <Sparkles className="mr-2 h-4 w-4" />
+                    <span>AI Araçları</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-[200px] p-2">
+                  {AI_FEATURES.map((feature) => (
+                    <DropdownMenuItem asChild key={feature.href}>
+                      <Link to={feature.href} className="flex items-center">
+                        <span>{feature.name}</span>
+                      </Link>
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
             <Link to="/premium">
               <Button variant="ghost" size="sm" className="gap-2 text-white hover:text-amber-400 hover:bg-amber-500/10">
@@ -124,15 +133,23 @@ export function Header() {
                 </Button>
               </Link>
               <div className="relative">
-                <Link
-                  to="/ai"
-                  className="group relative inline-flex items-center justify-center px-6 py-2 overflow-hidden font-bold text-white rounded-lg shadow-2xl bg-gradient-to-br from-purple-600 via-pink-500 to-orange-400 hover:bg-gradient-to-bl transition-all duration-300 hover:scale-110 hover:rotate-2"
-                >
-                  <span className="absolute right-0 w-8 h-32 -mt-12 transition-all duration-1000 transform translate-x-12 bg-white opacity-10 rotate-12 group-hover:-translate-x-40 ease"></span>
-                  <Sparkles className="w-5 h-5 mr-2 animate-bounce" />
-                  AI Studio
-                  <span className="absolute bottom-0 right-0 w-4 h-4 -mb-1 -mr-1 transition-all duration-500 transform rotate-45 translate-x-1 translate-y-1 bg-white opacity-10 group-hover:translate-x-0"></span>
-                </Link>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" className="relative h-9 w-full justify-start text-sm font-normal md:w-40 md:font-medium">
+                      <Sparkles className="mr-2 h-4 w-4" />
+                      <span>AI Araçları</span>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-[200px] p-2">
+                    {AI_FEATURES.map((feature) => (
+                      <DropdownMenuItem asChild key={feature.href}>
+                        <Link to={feature.href} className="flex items-center">
+                          <span>{feature.name}</span>
+                        </Link>
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
               <Link to="/premium">
                 <Button variant="ghost" size="sm" className="w-full justify-start gap-2">
