@@ -6,16 +6,18 @@ import { Loader2, Download, Share2, Sparkles } from 'lucide-react';
 import { OpenSourceAI } from '@/services/ai/OpenSourceAI';
 
 const VIDEO_MODELS = [
-  { id: 'ZEROSCOPE', name: 'ZeroScope (En İyi)' },
-  { id: 'MODELSCOPE', name: 'ModelScope' },
-  { id: 'ANIMATEDIFF', name: 'AnimateDiff' }
-];
+  { id: 'ZEROSCOPE', name: 'ZeroScope XL (En İyi)' },
+  { id: 'MODELSCOPE', name: 'ModelScope (Hızlı)' },
+  { id: 'ANIMATEDIFF', name: 'AnimateDiff (Anime Tarzı)' }
+] as const;
+
+type VideoModel = typeof VIDEO_MODELS[number]['id'];
 
 export default function AiVideo() {
   const [prompt, setPrompt] = useState('');
   const [generating, setGenerating] = useState(false);
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
-  const [selectedModel, setSelectedModel] = useState(VIDEO_MODELS[0].id);
+  const [selectedModel, setSelectedModel] = useState<VideoModel>('ZEROSCOPE');
   const [error, setError] = useState<string | null>(null);
 
   const handleGenerate = async () => {
@@ -27,13 +29,33 @@ export default function AiVideo() {
     
     try {
       const ai = OpenSourceAI.getInstance();
-      const result = await ai.generateVideo(prompt, selectedModel as any);
+      const result = await ai.generateVideo(prompt, selectedModel);
       setVideoUrl(result.url);
     } catch (error: any) {
       console.error('Video generation error:', error);
       setError(error.message || 'Video oluşturulurken bir hata oluştu');
     } finally {
       setGenerating(false);
+    }
+  };
+
+  const handleDownload = async () => {
+    if (!videoUrl) return;
+    
+    try {
+      const response = await fetch(videoUrl);
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `video-${Date.now()}.mp4`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error('Video indirme hatası:', error);
+      setError('Video indirilirken bir hata oluştu');
     }
   };
 
@@ -74,7 +96,7 @@ export default function AiVideo() {
                       </label>
                       <Select
                         value={selectedModel}
-                        onValueChange={setSelectedModel}
+                        onValueChange={(value) => setSelectedModel(value as VideoModel)}
                       >
                         <SelectTrigger className="bg-black/30 border-white/20 text-white">
                           <SelectValue />
@@ -87,6 +109,11 @@ export default function AiVideo() {
                           ))}
                         </SelectContent>
                       </Select>
+                      <p className="text-xs text-gray-400 mt-1">
+                        {selectedModel === 'ZEROSCOPE' && 'En yüksek kaliteli video üretimi, daha uzun sürer'}
+                        {selectedModel === 'MODELSCOPE' && 'Hızlı video üretimi, orta kalite'}
+                        {selectedModel === 'ANIMATEDIFF' && 'Anime ve çizgi film tarzı videolar'}
+                      </p>
                     </div>
 
                     {/* Açıklama */}
@@ -97,9 +124,12 @@ export default function AiVideo() {
                       <Textarea
                         value={prompt}
                         onChange={(e) => setPrompt(e.target.value)}
-                        placeholder="Örnek: Güneş batarken sahilde yürüyen bir çift..."
+                        placeholder="Örnek: Güneş batarken sahilde yürüyen bir çift, romantik ve sinematik tarzda..."
                         className="h-32 bg-black/30 border-white/20 text-white placeholder:text-gray-500 resize-none"
                       />
+                      <p className="text-xs text-gray-400">
+                        İpucu: Detaylı açıklamalar daha iyi sonuç verir. Tarz, renk, kamera açısı gibi detayları ekleyin.
+                      </p>
                     </div>
 
                     {/* Oluştur Butonu */}
@@ -122,7 +152,9 @@ export default function AiVideo() {
                     </Button>
 
                     {error && (
-                      <p className="text-red-500 text-sm mt-2">{error}</p>
+                      <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4 mt-4">
+                        <p className="text-red-400 text-sm">{error}</p>
+                      </div>
                     )}
                   </div>
                 </div>
@@ -140,6 +172,8 @@ export default function AiVideo() {
                       <video
                         src={videoUrl}
                         controls
+                        autoPlay
+                        loop
                         className="w-full h-full object-contain"
                       />
                     ) : (
@@ -148,9 +182,13 @@ export default function AiVideo() {
                           <div className="text-center">
                             <Loader2 className="w-8 h-8 mx-auto mb-2 animate-spin" />
                             <p>Video oluşturuluyor...</p>
+                            <p className="text-sm text-gray-500 mt-2">Bu işlem birkaç dakika sürebilir</p>
                           </div>
                         ) : (
-                          "Video burada görüntülenecek"
+                          <div className="text-center">
+                            <p>Video burada görüntülenecek</p>
+                            <p className="text-sm text-gray-500 mt-2">Detaylı açıklama yazarak başlayın</p>
+                          </div>
                         )}
                       </div>
                     )}
@@ -161,7 +199,7 @@ export default function AiVideo() {
                       <Button
                         variant="outline"
                         className="flex-1 bg-black/30 border-white/20 text-white hover:bg-black/50"
-                        onClick={() => window.open(videoUrl, '_blank')}
+                        onClick={handleDownload}
                       >
                         <Download className="w-4 h-4 mr-2" />
                         İndir
