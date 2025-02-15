@@ -1,43 +1,35 @@
-const API_KEY = 'sk-cFmurbMnDUPjbUrugegD5GXey87g5CGdpmgP2iLRmxJqCLdD';
+require('dotenv').config();
+
+import { writeFileSync } from 'fs';
 
 async function testAPI() {
   try {
-    // 1. API erişimi kontrolü
-    const balanceResponse = await fetch('https://api.stability.ai/v1/user/account', {
-      headers: {
-        'Authorization': `Bearer ${API_KEY}`,
-        'Content-Type': 'application/json',
-      }
-    });
-    
-    console.log('Account Response:', await balanceResponse.json());
-
-    // 2. Video API'sini test et
-    const videoResponse = await fetch('https://api.stability.ai/v1/generation/stable-video-full', {
+    // HuggingFace API'yi test ediyorum
+    const response = await fetch('https://api-inference.huggingface.co/models/damo-vilab/text-to-video-ms-1.7b', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${API_KEY}`,
-        'Accept': 'application/json'
+        'Authorization': `Bearer ${process.env.HUGGINGFACE_API_KEY}`
       },
       body: JSON.stringify({
-        text_prompts: [
-          {
-            text: "A running horse in a field",
-            weight: 1
-          }
-        ],
-        height: 576,
-        width: 1024,
-        cfg_scale: 2.5,
-        motion_bucket_id: 127,
-        seed: Math.floor(Math.random() * 1000000)
+        inputs: "A running horse in a field",
+        parameters: {
+          num_frames: 16,
+          num_inference_steps: 50,
+          guidance_scale: 9,
+          negative_prompt: "blurry, bad quality, worst quality"
+        }
       })
     });
 
-    console.log('Video Response Status:', videoResponse.status);
-    const responseText = await videoResponse.text();
-    console.log('Video Response:', responseText);
+    console.log('Response Status:', response.status);
+    const blob = await response.blob();
+    console.log('Video Size:', blob.size);
+
+    // Video dosyası olarak kaydet
+    const buffer = Buffer.from(await blob.arrayBuffer());
+    writeFileSync('test.mp4', buffer);
+    console.log('Video kaydedildi: test.mp4');
 
   } catch (error) {
     console.error('Test Error:', error);

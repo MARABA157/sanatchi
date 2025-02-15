@@ -23,6 +23,11 @@ import ArtistProfile from '@/pages/artist/[id]';
 import Premium from '@/pages/Premium';
 import AdminDashboard from './pages/admin';
 
+// AI Components
+import VideoGenerator from './components/VideoGenerator';
+import MusicGenerator from './components/MusicGenerator';
+import SpeechGenerator from './components/SpeechGenerator';
+
 function App() {
   const location = useLocation();
   const isAuthPage = location.pathname.startsWith('/auth');

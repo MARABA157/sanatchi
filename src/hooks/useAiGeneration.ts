@@ -6,45 +6,64 @@ interface GenerationState {
   style: string;
 }
 
+interface ApiResponse {
+  success: boolean;
+  path?: string;
+  error?: string;
+}
+
 export function useAiGeneration() {
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [state, setState] = useState<GenerationState>({
     image: null,
     video: null,
     style: '',
   });
 
+  const callApi = async (endpoint: string, data: any): Promise<ApiResponse> => {
+    const response = await fetch(`http://localhost:9999/api/generate/${endpoint}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+    
+    if (!response.ok) {
+      throw new Error(`API error: ${response.statusText}`);
+    }
+    
+    return response.json();
+  };
+
   // AI görsel ve video oluşturma süreci
-  const generate = async () => {
+  const generate = async (prompt: string) => {
     setLoading(true);
+    setError(null);
     setState({ image: null, video: null, style: '' });
 
     try {
-      // 1. Adım: Görsel oluştur
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      const aiImages = [
-        'https://images.unsplash.com/photo-1686191128892-3b960bb41da1',
-        'https://images.unsplash.com/photo-1684779847639-fbcc5a57dfe9',
-        'https://images.unsplash.com/photo-1683009427666-340595e57e43',
-      ];
-      const randomImage = aiImages[Math.floor(Math.random() * aiImages.length)];
-      setState(prev => ({ ...prev, image: randomImage }));
-
-      // 2. Adım: Görseli videoya dönüştür
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      const aiVideos = [
-        'https://player.vimeo.com/video/824804225',
-        'https://player.vimeo.com/video/824804262',
-        'https://player.vimeo.com/video/824804301',
-      ];
-      const randomVideo = aiVideos[Math.floor(Math.random() * aiVideos.length)];
+      // Video oluştur
+      const videoResult = await callApi('video', { prompt });
+      if (!videoResult.success) {
+        throw new Error(videoResult.error || 'Video oluşturma hatası');
+      }
       setState(prev => ({ 
         ...prev, 
-        video: randomVideo,
-        style: ['Surreal Animation', 'Abstract Motion', 'Digital Flow'][Math.floor(Math.random() * 3)]
+        video: videoResult.path,
+        style: 'AI Generated Video'
       }));
+
+      // Ses oluştur
+      const speechResult = await callApi('speech', { text: prompt });
+      if (!speechResult.success) {
+        throw new Error(speechResult.error || 'Ses oluşturma hatası');
+      }
+      
     } catch (error) {
       console.error('Generation failed:', error);
+      setError(error instanceof Error ? error.message : 'Bilinmeyen hata');
     } finally {
       setLoading(false);
     }
@@ -52,9 +71,8 @@ export function useAiGeneration() {
 
   return {
     loading,
-    generatedImage: state.image,
-    generatedVideo: state.video,
-    style: state.style,
-    generate,
+    error,
+    state,
+    generate
   };
 }

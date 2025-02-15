@@ -1,23 +1,9 @@
-import { AI_MODELS } from './models';
+const API_URL = 'http://localhost:9999/api';
 
 export class OpenSourceAI {
   private static instance: OpenSourceAI;
-  private readonly HF_API = 'https://api-inference.huggingface.co/models/damo-vilab/text-to-video-ms-1.7b';
-  private readonly HF_TOKEN: string;
-  private readonly RUNWAY_API = 'https://api.runwayml.com/v1';
-  private readonly RUNWAY_TOKEN: string;
 
-  private constructor() {
-    this.HF_TOKEN = import.meta.env.VITE_HUGGINGFACE_API_KEY || '';
-    this.RUNWAY_TOKEN = import.meta.env.VITE_RUNWAY_API_KEY || '';
-    
-    if (!this.HF_TOKEN) {
-      console.error('HuggingFace API anahtarı bulunamadı. Lütfen .env.local dosyasını kontrol edin.');
-    }
-    if (!this.RUNWAY_TOKEN) {
-      console.error('Runway ML API anahtarı bulunamadı. Lütfen .env.local dosyasını kontrol edin.');
-    }
-  }
+  private constructor() {}
 
   public static getInstance(): OpenSourceAI {
     if (!OpenSourceAI.instance) {
@@ -26,84 +12,70 @@ export class OpenSourceAI {
     return OpenSourceAI.instance;
   }
 
-  // Video oluşturma
-  public async generateVideo(prompt: string): Promise<{ url: string }> {
+  private async callAPI(endpoint: string, data: any): Promise<{ url: string }> {
     try {
-      console.log('Video oluşturuluyor:', prompt);
-
-      if (!this.RUNWAY_TOKEN) {
-        throw new Error('Runway ML API anahtarı bulunamadı');
-      }
-
-      // 1. İlk olarak video oluşturma isteği gönder
-      const generateResponse = await fetch(`${this.RUNWAY_API}/text-to-video`, {
+      const response = await fetch(`${API_URL}${endpoint}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.RUNWAY_TOKEN}`,
         },
-        body: JSON.stringify({
-          prompt: prompt,
-          num_frames: 150,
-          fps: 30,
-          guidance_scale: 12.5,
-          height: 576,
-          width: 1024,
-          seed: Math.floor(Math.random() * 1000000)
-        })
+        body: JSON.stringify(data),
       });
 
-      if (!generateResponse.ok) {
-        const errorData = await generateResponse.text();
-        console.error('Runway ML API hatası:', errorData);
-        throw new Error(`Video oluşturma hatası: ${generateResponse.status} - ${errorData || generateResponse.statusText}`);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || `API isteği başarısız oldu: ${response.status}`);
       }
 
-      const { id } = await generateResponse.json();
+      const result = await response.json();
+      if (!result.success) {
+        throw new Error(result.error || 'Bilinmeyen bir hata oluştu');
+      }
 
-      // 2. Video hazır olana kadar bekle
-      let status = 'starting';
-      let videoUrl = '';
-      
-      while (status !== 'completed' && status !== 'failed') {
-        await new Promise(resolve => setTimeout(resolve, 2000)); // 2 saniye bekle
+      if (!result.data) {
+        throw new Error('API yanıtında data bulunamadı');
+      }
 
-        const statusResponse = await fetch(`${this.RUNWAY_API}/text-to-video/${id}`, {
-          headers: {
-            'Authorization': `Bearer ${this.RUNWAY_TOKEN}`,
-          },
-        });
-
-        if (!statusResponse.ok) {
-          const errorData = await statusResponse.text();
-          console.error('Runway ML API durum kontrolü hatası:', errorData);
-          throw new Error(`Video durum kontrolü hatası: ${statusResponse.status} - ${errorData || statusResponse.statusText}`);
+      // Base64'ü Blob'a çevir
+      try {
+        const binary = atob(result.data);
+        const array = new Uint8Array(binary.length);
+        for (let i = 0; i <binary.length; i++) {
+          array[i] = binary.charCodeAt(i);
         }
-
-        const statusData = await statusResponse.json();
-        status = statusData.status;
-        
-        if (status === 'completed') {
-          videoUrl = statusData.output.url;
-        } else if (status === 'failed') {
-          throw new Error('Video oluşturma başarısız oldu: ' + statusData.error || 'Bilinmeyen hata');
-        }
-
-        console.log('Video durumu:', status);
+        const blob = new Blob([array], { type: result.type });
+        const url = URL.createObjectURL(blob);
+        return { url };
+      } catch (error) {
+        throw new Error('Base64 dönüşümü başarısız oldu: ' + (error as Error).message);
       }
-
-      if (!videoUrl) {
-        throw new Error('Video URL alınamadı');
-      }
-
-      return { url: videoUrl };
     } catch (error) {
-      console.error('Video oluşturma hatası:', error);
-      if (error instanceof Error) {
-        throw new Error(`Video oluşturma hatası: ${error.message}`);
-      } else {
-        throw new Error('Bilinmeyen bir video oluşturma hatası oluştu');
-      }
+      console.error('API çağrısı hatası:', error);
+      throw error;
     }
+  }
+
+  // Video oluşturma
+  public async generateVideo(prompt: string): Promise<{ url: string }> {
+    if (!prompt) {
+      throw new Error('Prompt boş olamaz');
+    }
+    return this.callAPI('/generate/video', { prompt });
+  }
+
+  // Müzik oluşturma
+  public async generateMusic(prompt: string): Promise<{ url: string }> {
+    if (!prompt) {
+      throw new Error('Prompt boş olamaz');
+    }
+    return this.callAPI('/generate/music', { prompt });
+  }
+
+  // Konuşma oluşturma
+  public async generateSpeech(text: string): Promise<{ url: string }> {
+    if (!text) {
+      throw new Error('Metin boş olamaz');
+    }
+    return this.callAPI('/generate/speech', { text });
   }
 }
